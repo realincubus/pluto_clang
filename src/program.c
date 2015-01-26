@@ -2682,6 +2682,8 @@ PlutoOptions *pluto_options_alloc()
 
     options->lbtile = 0;
     options->partlbtile = 0;
+
+    options->iss = 0;
     options->unroll = 0;
 
     /* Unroll/jam factor */
@@ -3173,6 +3175,9 @@ Stmt *pluto_stmt_alloc(int dim,
     stmt->writes = NULL;
     stmt->nreads = 0;
     stmt->nwrites = 0;
+
+    /* For diamond tiling */
+    stmt->evicted_hyp = NULL;
 
     stmt->first_tile_dim = 0;
     stmt->last_tile_dim = -1;

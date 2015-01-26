@@ -436,17 +436,17 @@ static void compute_permutability_constraints_dep(Dep *dep, PlutoProg *prog)
 }
 
 /* This function itself is NOT thread-safe for the same PlutoProg */
-PlutoConstraints *get_permutability_constraints(Dep **deps, int ndeps,
-        PlutoProg *prog)
+PlutoConstraints *get_permutability_constraints(PlutoProg *prog)
 {
-    int i, inc, nstmts, nvar, npar;
+    int i, inc, nstmts, nvar, npar, ndeps;
     PlutoConstraints *globcst;
+    Dep **deps;
 
     nstmts = prog->nstmts;
+    ndeps = prog->ndeps;
+    deps = prog->deps;
     nvar = prog->nvar;
     npar = prog->npar;
-
-    globcst = prog->globcst;
 
     int total_cst_rows = 0;
 
@@ -470,9 +470,12 @@ PlutoConstraints *get_permutability_constraints(Dep **deps, int ndeps,
         }
     }
 
-    if (!globcst) {
-        globcst = pluto_constraints_alloc(total_cst_rows, CST_WIDTH);
+    if (!prog->globcst) {
+        prog->globcst = pluto_constraints_alloc(total_cst_rows, CST_WIDTH);
     }
+
+    globcst = prog->globcst;
+
     globcst->ncols = CST_WIDTH;
     globcst->nrows = 0;
 
@@ -872,7 +875,7 @@ DepDir get_dep_direction(const Dep *dep, const PlutoProg *prog, int level)
 
     pluto_constraints_add(cst, dep->dpolytope);
 
-    int64 *sol = pluto_constraints_solve(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
+    int64 *sol = pluto_constraints_lexmin(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
 
     if (!sol)   {
         for (j=0; j<src_dim; j++)    {
@@ -887,7 +890,7 @@ DepDir get_dep_direction(const Dep *dep, const PlutoProg *prog, int level)
 
         pluto_constraints_add(cst, dep->dpolytope);
 
-        sol = pluto_constraints_solve(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
+        sol = pluto_constraints_lexmin(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
 
         /* If no solution exists, all points satisfy \phi (dest) - \phi (src) = 0 */
         if (!sol)   {
@@ -918,7 +921,7 @@ DepDir get_dep_direction(const Dep *dep, const PlutoProg *prog, int level)
     pluto_constraints_add(cst, dep->dpolytope);
 
     free(sol);
-    sol = pluto_constraints_solve(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
+    sol = pluto_constraints_lexmin(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
 
     if (!sol)   {
         pluto_constraints_free(cst);
@@ -946,7 +949,7 @@ DepDir get_dep_direction(const Dep *dep, const PlutoProg *prog, int level)
     pluto_constraints_add(cst, dep->dpolytope);
 
     free(sol);
-    sol = pluto_constraints_solve(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
+    sol = pluto_constraints_lexmin(cst,DO_NOT_ALLOW_NEGATIVE_COEFF);
     pluto_constraints_free(cst);
 
     if (!sol)   {   
