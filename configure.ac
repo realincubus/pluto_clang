@@ -16,7 +16,7 @@ dnl
 
 AC_PREREQ(2.13)
 
-AC_INIT(pluto, 0.11.2, [uday@csa.iisc.ernet.in])
+AC_INIT(pluto, 0.11.3, [uday@csa.iisc.ernet.in])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -246,6 +246,8 @@ fi
 
 (cd pet && ./configure ${configureopts})
 
+dnl check if pet configure had failed
+AC_CHECK_FILE([pet/Makefile], [], [AC_MSG_ERROR([configure in pet/ failed])])
 
 dnl Configuring Cloog 0.14.1 (long long int)
 echo ""

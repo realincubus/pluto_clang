@@ -640,7 +640,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
         if (tmpfp)    {
             fprintf(tmpfp, "%s\n", outFileName);
             fclose(tmpfp);
-            printf( "[Pluto] Output written to %s\n", outFileName);
+            PLUTO_MESSAGE(printf( "[Pluto] Output written to %s\n", outFileName););
         }
         free(outFileName);
 
@@ -651,7 +651,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
 
     t_all = rtclock() - t_start_all;
 
-    if (options->time) {
+    if (options->time && !options->silent) {
         printf("\n[pluto] Timing statistics\n[pluto] SCoP extraction + dependence analysis time: %0.6lfs\n", t_d);
         printf("[pluto] Auto-transformation time: %0.6lfs\n", t_t);
         printf("[pluto] Code generation time: %0.6lfs\n", t_c);
