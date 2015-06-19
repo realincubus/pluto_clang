@@ -82,6 +82,9 @@ COMMAND-LINE OPTIONS
     --help 
     List all available options with one-line summary
 
+    --pet Use 'pet' to extract polyhedral representation from the source 
+    program instead of clan.
+
     --tile [--l2tile]
     Tile code; in addition, --l2tile will tile once more for the L2 
     cache. By default, both of them are disabled. Tile sizes can be 
@@ -203,6 +206,32 @@ will be
 2
 16
 
+The default tile size in the absence of a tile.sizes file is 32 (along all 
+dimensions), and the default L2/L1 ratio is 8.
+
+SETTING GOOD TILE SIZES
+
+One would like to maximize locality while making sure there are enough tiles 
+to keep all cores busy. Rough thumb rules on selecting tile sizes 
+empirically are below.
+
+(1) data set should fit in L1 roughly (or definitely within L2), 
+(2) the innermost dimension should have enough iterations, especially if 
+it's being vectorized so that (a) cleanup code if any doesn't hurt and (b) 
+prefetching provides benefits,
+(3) for non-innermost dimensions from which temporal reuse is typically being
+exploited, increasing tile size beyond 32 often provides diminishing returns 
+(additional reuse); so one may not want to experiment much beyond 32. Each 
+time tile.sizes is changed, code has to be regenerated (rm -f *.tiled.c; 
+make tiled; ./tiled).
+
+*TILE SIZES FOR DIAMOND TILING OF STENCILS*: for 'lbpar', which is 
+diamond-tiled along the outer two dimensions (with --partlbtile), the same 
+tile size should be chosen along the first two dimensions; otherwise, the 
+tile wavefront will no longer be parallel to the concurrent start face and 
+tile-wise concurrent start will be lost.
+
+
 
 SPECIFYING A CUSTOM FUSION STRUCTURE THROUGH '.fst' or '.precut' file
 
@@ -250,23 +279,26 @@ Alternative 2
 
 Using the '.precut' file
 
-The '.precut' can be used to specify any partial transformation that 
-Pluto can then complete. The format is as follows:
+The '.precut' can be used to specify any partial transformation that Pluto 
+can then complete. This is a useful way to test or manually specify a 
+particular transformation, or to check if a particular transformation is a 
+valid one. The format of .precut is as below.
 
 <number of statements>
 <number of levels to tile>
 # first statement
 <number of rows, and number of columns for the partial transformation>
-<rows of the partial transformation in cloog-like scattering function 
-format; so if the partial transformation is c1 = i+j+1 for a 2-d 
-statement and 1 program parameter, the row would like 0 1 1 0 1, the 
-first number is always a zero (for an equality), then 1 for i, 1 for j, 
-0 for the parameter, 1 for the constant part>
-<a number that's not currently meaningful, just specify anything>
+<rows of the partial transformation in Cloog-like scattering function 
+format. For eg.,  if the partial transformation is c1 = i+j+1 for a 2-d 
+statement with one program parameter, the row would be 0 1 1 0 1, the first 
+number is always a zero (for an equality), then 1 for i, 1 for j, 
+0 for the parameter, and 1 for the constant part>
+<a number that's not currently used, specify anything>
 <whether or not to tile each of the levels, 0 for `don't tile', any 
-other number for tiling>
+other number for tiling; as many lines as the number of tiling levels
+specified earlier>
 # second statement
-....
+...
 
 Parsing of any other text (like comments) in .fst or .precut is not 
 handled.

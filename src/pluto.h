@@ -126,6 +126,10 @@ struct statement{
     /* The hyperplane evicted by the hyperplane enabling
      * concurrent start (diamond tiling) */
     PlutoMatrix *evicted_hyp;
+    
+    /* Hyperplane that was replaced in case concurrent start 
+     * had been found*/
+    int evicted_hyp_pos;
 
     /* H_LOOP, H_SCALAR, .. */
     PlutoHypType *hyp_types;
@@ -194,21 +198,29 @@ struct dependence{
 
     PlutoConstraints *depsat_poly;
 
-    int *satvec;
-
     /* Dependence type from Candl (raw, war, or rar) */
     int type;
 
     /* Has this dependence been satisfied? */
     bool satisfied;
 
-    /* Level at which the dependence is satisfied */
+    /* Level at which this dependence is completely satisfied (when doing
+     * conservative computation) or level *by* which the dependence is
+     * completely satisfied (if doing a complex/accurate check) */
     int satisfaction_level;
 
-    /* Constraints for validity of a transformation */
-    PlutoConstraints *valid_cst;
+    /* 
+     * A vector which provides the levels at which a
+     * dependence has been satisfied. Depending on how this is 
+     * computed, it may be conservative or accurate
+     */
+    int *satvec;
 
-    /* Constraints for bounding the dependence distance */
+    /* Constraints for preserving this dependence while bounding 
+     * its distance */
+    PlutoConstraints *cst;
+
+    /* Constraints for bounding dependence distance */
     PlutoConstraints *bounding_cst;
 
     /* Dependence direction in transformed space */
@@ -366,6 +378,7 @@ void pluto_constraints_list_add(PlutoConstraintsList *list,const PlutoConstraint
 void pluto_constraints_list_replace(PlutoConstraintsList *list, PlutoConstraints *cst);
 
 typedef struct band{
+    /* Root loop of this band */
     Ploop *loop;
     int width;
     /* Not used yet */
@@ -390,6 +403,7 @@ void pluto_compute_satisfaction_vectors(PlutoProg *prog);
 void pluto_compute_dep_directions(PlutoProg *prog);
 
 PlutoConstraints *get_permutability_constraints(PlutoProg *);
+PlutoConstraints *get_feautrier_schedule_constraints(PlutoProg *prog, Stmt **, int);
 PlutoConstraints **get_stmt_ortho_constraints(Stmt *stmt, const PlutoProg *prog,
         const PlutoConstraints *currcst, int *orthonum);
 PlutoConstraints *get_global_independence_cst(
@@ -404,7 +418,7 @@ int pluto_dynschedule_codegen(PlutoProg *prog, FILE *sigmafp, FILE *outfp, FILE 
 int pluto_distmem_codegen(PlutoProg *prog, FILE *cloogfp, FILE *sigmafp, FILE *outfp, FILE *headerfp);
 
 int  find_permutable_hyperplanes(PlutoProg *prog, bool lin_ind_mode, 
-       bool loop_search_mode, int max_sols);
+        int max_sols, int band_depth);
 
 void detect_hyperplane_type(Stmt *stmts, int nstmts, Dep *deps, int ndeps, int, int, int);
 DepDir  get_dep_direction(const Dep *dep, const PlutoProg *prog, int level);
@@ -442,7 +456,6 @@ PlutoConstraints *pluto_compute_region_data(const Stmt *stmt, const PlutoConstra
 
 int generate_declarations(const PlutoProg *prog, FILE *outfp);
 int pluto_gen_cloog_code(const PlutoProg *prog, int cloogf, int cloogl, FILE *cloogfp, FILE *outfp);
-Stmt *create_helper_stmt(const Stmt *stmt, int level, const char *text, PlutoStmtType type, int ploop_num);
 void pluto_add_given_stmt(PlutoProg *prog, Stmt *stmt);
 Stmt *pluto_create_stmt(int dim, const PlutoConstraints *domain, const PlutoMatrix *trans,
         char ** iterators, const char *text, PlutoStmtType type);

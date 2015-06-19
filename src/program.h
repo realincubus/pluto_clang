@@ -37,7 +37,7 @@ void pluto_stmt_print(FILE *fp, const Stmt *stmt);
 void pluto_prog_print(FILE *fp, PlutoProg *prog);
 
 Dep *pluto_dep_alloc();
-void pluto_dep_print(FILE *fp, Dep *dep);
+void pluto_dep_print(FILE *fp, const Dep *dep);
 void pluto_deps_print(FILE *, PlutoProg *prog);
 
 PlutoProg *pluto_prog_alloc();
@@ -84,7 +84,6 @@ char *get_parametric_bounding_box(const PlutoConstraints *cst, int start,
 void pluto_separate_stmt(PlutoProg *prog, const Stmt *stmt, int level);
 void pluto_separate_stmts(PlutoProg *prog, Stmt **stmts, int num, int level, int offset);
 
-int extract_stmts(__isl_keep isl_union_set *domains, Stmt **stmts);
 int pluto_is_hyperplane_scalar(const Stmt *stmt, int level);
 int pluto_stmt_is_member_of(int stmt_id, Stmt **slist, int len);
 PlutoAccess **pluto_get_all_waccs(const PlutoProg *prog, int *num);
@@ -113,6 +112,8 @@ void pluto_transformations_print(const PlutoProg *prog);
 void pluto_transformations_pretty_print(const PlutoProg *prog);
 void pluto_print_hyperplane_properties(const PlutoProg *prog);
 void pluto_stmt_transformation_print(const Stmt *stmt);
+void pluto_stmt_print_hyperplane(FILE *fp, const Stmt *stmt, int level);
+void pluto_transformation_print_level(const PlutoProg *prog, int level);
 
 Stmt *pluto_stmt_dup(const Stmt *stmt);
 PlutoAccess *pluto_access_dup(const PlutoAccess *acc);

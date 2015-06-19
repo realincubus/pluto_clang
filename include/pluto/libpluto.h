@@ -3,6 +3,8 @@
 #include "isl/union_set.h"
 #include "isl/union_map.h"
 
+#include "osl/scop.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -131,8 +133,11 @@ struct plutoOptions{
     /* Use candl to compute dependences */
     int candldep;
 
-    /* Compact dependences with ISL */
-    int isldepcompact;
+    /* Access-wise dependences with ISL */
+    int isldepaccesswise;
+
+    /* Coalesce ISL deps */
+    int isldepcoalesce;
 
     /* Compute lastwriter for dependences */
     int lastwriter;
@@ -151,6 +156,9 @@ struct plutoOptions{
 
     /* Read input from a .scop file */
     int readscop;
+
+    /* Use PIP as ilp solver. */
+    int pipsolve;
 
     /* Use isl as ilp solver. */
     int islsolve;
