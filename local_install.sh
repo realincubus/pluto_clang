@@ -1,5 +1,5 @@
 
-base=$(dirname "$0")
+base=$(pwd)
 cd $base
 ./autogen.sh
 ./configure --enable-debug --prefix=$base/install
