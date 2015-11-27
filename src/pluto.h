@@ -31,6 +31,10 @@
 
 #include "osl/extensions/dependence.h"
 
+#ifdef __cplusplus 
+extern "C"{
+#endif
+
 /* Check out which piplib we are linking with */
 /* Candl/piplib_wrapper converts relation to matrices */
 #ifdef SCOPLIB_INT_T_IS_LONGLONG // Defined in src/Makefile.am
@@ -263,6 +267,8 @@ struct plutoProg{
     Dep **deps;
     int ndeps;
 
+    char** deps_explanation;
+
     /* Array of dependences */
     /* Used for calculating write-out set only if options->lastwriter */
     /* May contain transitive WAR dependences */
@@ -475,5 +481,9 @@ void pluto_iss_dep(PlutoProg *prog);
 PlutoConstraints *pluto_find_iss(const PlutoConstraints **doms, int ndoms, int npar, PlutoConstraints *);
 void pluto_iss(Stmt *stmt, PlutoConstraints **cuts, int num_cuts, PlutoProg *prog);
 
+
+#ifdef __cplusplus 
+}
+#endif
 
 #endif
