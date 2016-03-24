@@ -38,6 +38,8 @@ void pluto_mark_parallel(struct clast_stmt *root, const PlutoProg *prog,
     int *stmts;
     assert(root != NULL);
 
+    printf("pluto_mark_parallel\n");
+
     // int filter[1] = {1};
 
     Ploop **ploops = pluto_get_dom_parallel_loops(prog, &nploops);
@@ -109,6 +111,7 @@ void pluto_mark_vector(struct clast_stmt *root, const PlutoProg *prog,
     struct clast_for **loops;
     int *stmts;
     assert(root != NULL);
+    printf("pluto_mark_vector\n");
 
     Ploop **ploops = pluto_get_parallel_loops(prog, &nploops);
 

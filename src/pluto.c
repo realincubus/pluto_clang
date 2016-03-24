@@ -698,17 +698,21 @@ PlutoConstraints *get_linear_ind_constraints(const PlutoProg *prog,
     nvar = prog->nvar;
     nstmts = prog->nstmts;
     stmts = prog->stmts;
+    printf("Line %d %s %s - %d %d %d\n",__LINE__,__FILE__,__PRETTY_FUNCTION__,npar, nvar, nstmts);
 
     orthcst = (PlutoConstraints ***) malloc(nstmts*sizeof(PlutoConstraints **));
 
     orthosum = 0;
 
+    printf("Line %d %s %s - orthogonality constraint - prog->stmts %d \n",__LINE__,__FILE__,__PRETTY_FUNCTION__, prog->stmts);
     /* Get orthogonality constraints for each statement */
     for (j=0; j<nstmts; j++)    {
+	printf("Line %d %s %s - accessing element %d at %d \n",__LINE__,__FILE__,__PRETTY_FUNCTION__, j, stmts[j]);
         orthcst[j] = get_stmt_ortho_constraints(stmts[j], 
                 prog, cst, &orthonum[j]);
         orthosum += orthonum[j];
     }
+    printf("Line %d %s %s - done orthogonality constraint\n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
 
     PlutoConstraints *indcst = pluto_constraints_alloc(1, CST_WIDTH);
 
@@ -746,6 +750,7 @@ PlutoConstraints *get_linear_ind_constraints(const PlutoProg *prog,
         free(orthcst[j]);
     }
     free(orthcst);
+    printf("Line %d %s %s - done\n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
 
     return indcst;
 }
@@ -793,12 +798,14 @@ int find_permutable_hyperplanes(PlutoProg *prog, bool hyp_search_mode,
     currcst = pluto_constraints_alloc(basecst->nrows+nstmts+nvar*nstmts, 
             CST_WIDTH);
 
+    printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     do{
         pluto_constraints_copy(currcst, basecst);
         nzcst = get_non_trivial_sol_constraints(prog, hyp_search_mode);
         pluto_constraints_add(currcst, nzcst);
         pluto_constraints_free(nzcst);
 
+	printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
         PlutoConstraints *indcst = get_linear_ind_constraints(prog, currcst, hyp_search_mode);
         // print_polylib_visual_sets("ind", indcst);
         IF_DEBUG2(printf("linear independence constraints\n"));
@@ -1086,7 +1093,7 @@ void pluto_detect_transformation_properties(PlutoProg *prog)
 
     assert(prog->num_hyperplanes == stmts[0]->trans->nrows);
 
-    // pluto_deps_print(stdout, prog);
+    pluto_deps_print(stderr, prog);
 
     /* First compute satisfaction levels */
     pluto_compute_dep_directions(prog);
@@ -1096,7 +1103,9 @@ void pluto_detect_transformation_properties(PlutoProg *prog)
     num_loops_in_band = 0;
     int bandStart = 0;
 
+    fprintf(stderr, "loop over hyperplanes\n");
     for (level=0; level < prog->num_hyperplanes; ) {
+        fprintf(stderr, "hyperplane %d\n", level);
         for (i=0; i<prog->ndeps; i++)   {
             if (IS_RAR(deps[i]->type)) continue;
             if (deps[i]->satisfaction_level < level && 
@@ -1166,11 +1175,13 @@ void pluto_detect_transformation_properties(PlutoProg *prog)
         }
     }
 
+    fprintf(stderr, "if num_loops_in_band == 1 \n");
     if (num_loops_in_band == 1) {
         if (hProps[level-1].dep_prop == PIPE_PARALLEL)
             hProps[level-1].dep_prop = SEQ;
     }
 
+    fprintf(stderr, "loop over hyperplanes\n");
     /* 
      * This functionality is obsolete since Ploop based functions are now used
      * Permutable bands of loops could have inner parallel loops; they 
@@ -1190,6 +1201,7 @@ void pluto_detect_transformation_properties(PlutoProg *prog)
     }
 
     pluto_detect_hyperplane_types_stmtwise(prog);
+
 }
 
 
@@ -1748,6 +1760,7 @@ int pluto_auto_transform(PlutoProg *prog)
     int orig_num_hyperplanes = prog->num_hyperplanes;
     HyperplaneProperties *orig_hProps = prog->hProps;
 
+    printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     /* Get rid of any existing transformation */
     for (i=0; i<nstmts; i++) {
         Stmt *stmt = prog->stmts[i];
@@ -1776,6 +1789,7 @@ int pluto_auto_transform(PlutoProg *prog)
 
     depth = 0;
 
+    printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     if (precut(prog, ddg, depth))   {
         /* Distributed based on .fst or .precut file (customized user-supplied
          * fusion structure */
@@ -1791,6 +1805,7 @@ int pluto_auto_transform(PlutoProg *prog)
     }
 
 
+    printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     /* For diamond tiling */
     conc_start_found = 0;
 
@@ -1799,6 +1814,7 @@ int pluto_auto_transform(PlutoProg *prog)
          * (maximum across all statements) */
         int num_sols_left;
 
+	printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
         if (options->fuse == NO_FUSE)   {
             ddg_compute_scc(prog);
             cut_all_sccs(prog, ddg);
@@ -1821,6 +1837,7 @@ int pluto_auto_transform(PlutoProg *prog)
          * linearly independent solutions had been found */
         assert(hyp_search_mode == LAZY || num_sols_left == num_ind_sols_req - num_ind_sols_found);
 
+	printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
         nsols = find_permutable_hyperplanes(prog, hyp_search_mode,
                 num_sols_left, depth);
 
@@ -1828,8 +1845,10 @@ int pluto_auto_transform(PlutoProg *prog)
                     depth, nsols));
         IF_DEBUG2(pluto_transformations_pretty_print(prog));
 
+	printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
         num_ind_sols_found = pluto_get_max_ind_hyps(prog);
         
+	printf("Line %d %s %s \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
         if (nsols >= 1) {
             /* Diamond tiling: done for the first band of permutable loops */
             if (options->lbtile && nsols >= 2 && !conc_start_found) {

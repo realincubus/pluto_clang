@@ -402,6 +402,118 @@ __isl_give isl_union_map *pluto_schedule(isl_union_set *domains,
     return schedules;
 }
 
+int pluto_schedule_pluto( PlutoProg* prog, PlutoOptions* options ){
+
+    printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    int i, j, nbands, n_ibands, retval;
+
+    retval = pluto_auto_transform(prog);
+
+
+    if (retval) {
+      /* Failure */
+      pluto_prog_free(prog);
+      //isl_space_free(space);
+
+      if (!options->silent) {
+	  printf("[libpluto] failure, returning NULL schedules\n");
+      }
+
+      printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      return NULL;
+    }
+
+    pluto_detect_transformation_properties(prog);
+
+    if (!options->silent) {
+        pluto_transformations_pretty_print(prog);
+        pluto_print_hyperplane_properties(prog);
+    }
+
+    Band **bands, **ibands;
+    bands = pluto_get_outermost_permutable_bands(prog, &nbands);
+    ibands = pluto_get_innermost_permutable_bands(prog, &n_ibands);
+    printf("Outermost tilable bands: %d bands\n", nbands);
+    pluto_bands_print(bands, nbands);
+    printf("Innermost tilable bands: %d bands\n", n_ibands);
+    pluto_bands_print(ibands, n_ibands);
+    int nploops;
+    Ploop **ploops = pluto_get_dom_parallel_loops(prog, &nploops);
+    printf("number of parallel loops %d\n", nploops);
+
+    return nploops;
+
+#if 0
+    if (options->tile) {
+        pluto_tile(prog);
+    }
+
+    /* Detect properties again after tiling */
+    pluto_detect_transformation_properties(prog);
+
+    if (options->tile && !options->silent)  {
+        fprintf(stdout, "[Pluto] After tiling:\n");
+        pluto_transformations_pretty_print(prog);
+        pluto_print_hyperplane_properties(prog);
+    }
+
+    printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    /* Intra-tile optimization */
+    if (options->intratileopt) {
+        int nbands;
+        Band **bands = pluto_get_outermost_permutable_bands(prog, &nbands);
+        int retval = 0;
+        for (i=0; i<nbands; i++) {
+            retval |= pluto_intra_tile_optimize_band(bands[i], 0, prog); 
+        }
+        if (retval) pluto_detect_transformation_properties(prog);
+        if (retval & !options->silent) {
+            printf("[Pluto] after intra tile opt\n");
+            pluto_transformations_pretty_print(prog);
+        }
+        pluto_bands_free(bands, nbands);
+    }
+
+    printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    if ((options->parallel) && !options->tile && !options->identity)   {
+        /* Obtain wavefront/pipelined parallelization by skewing if
+         * necessary */
+        int nbands;
+        Band **bands;
+        bands = pluto_get_outermost_permutable_bands(prog, &nbands);
+        bool retval = pluto_create_tile_schedule(prog, bands, nbands);
+        pluto_bands_free(bands, nbands);
+
+        /* If the user hasn't supplied --tile and there is only pipelined
+         * parallelism, we will warn the user */
+        if (retval && !options->silent)   {
+            printf("[Pluto] WARNING: pipelined parallelism exists and --tile is not used.\n");
+            printf("use --tile for better parallelization \n");
+            fprintf(stdout, "[Pluto] After skewing:\n");
+            pluto_transformations_pretty_print(prog);
+            pluto_print_hyperplane_properties(prog);
+        }
+
+    }
+
+    if (options->tile && !options->silent)  {
+        fprintf(stdout, "[Pluto] After tiling:\n");
+        pluto_transformations_pretty_print(prog);
+        pluto_print_hyperplane_properties(prog);
+    }
+
+
+    printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    if (options->parallel && !options->silent) {
+        int nploops;
+        Ploop **ploops = pluto_get_dom_parallel_loops(prog, &nploops);
+        printf("[pluto_mark_parallel pluto_schedule_pluto] %d parallel loops\n", nploops);
+        pluto_loops_print(ploops, nploops);
+        printf("\n");
+        pluto_loops_free(ploops, nploops);
+    }
+#endif
+}
 
 
 /*
@@ -547,3 +659,5 @@ int pluto_schedule_osl(osl_scop_p scop,
 
   return EXIT_SUCCESS;
 }
+
+

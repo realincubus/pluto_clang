@@ -586,21 +586,31 @@ PlutoConstraints **get_stmt_ortho_constraints(Stmt *stmt, const PlutoProg *prog,
     isl_basic_set *isl_currcst;
     PlutoOptions *options;
 
+    printf("Line %d %s %s - before options - prog %d - stmt %d\n",__LINE__,__FILE__,__PRETTY_FUNCTION__,prog, stmt);
     options = prog->options;
+    printf("Line %d %s %s - after options - prog %d - stmt %d - options %d\n",__LINE__,__FILE__,__PRETTY_FUNCTION__,prog, stmt, options);
 
     nvar = prog->nvar;
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     npar = prog->npar;
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     nstmts = prog->nstmts;
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     hProps = prog->hProps;
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
 
-    IF_DEBUG(printf("[pluto] get_stmt_ortho constraints S%d\n", stmt->id+1););
+    printf("Line %d %s %s - stmt->id %d\n",__LINE__,__FILE__,__PRETTY_FUNCTION__, stmt->id);
 
+    printf("[pluto] get_stmt_ortho constraints S%d\n", stmt->id + 1);
+
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     /* Transformation has full column rank already */
     if (pluto_stmt_get_num_ind_hyps(stmt) >= stmt->dim_orig) {
         *orthonum = 0;
         return NULL;
     }
 
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     /* Get rid of the variables that don't appear in the domain of this
      * statement and also beta rows */
     for (i = 0, p = 0; i < nvar; i++) {
@@ -609,8 +619,10 @@ PlutoConstraints **get_stmt_ortho_constraints(Stmt *stmt, const PlutoProg *prog,
         }
     }
 
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     assert(stmt->trans != NULL);
 
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     for (j = 0, q = 0; j < stmt->trans->nrows; j++) {
         if (hProps[j].type != H_SCALAR) {
             q++;
@@ -638,6 +650,7 @@ PlutoConstraints **get_stmt_ortho_constraints(Stmt *stmt, const PlutoProg *prog,
         }
     }
 
+    printf("Line %d %s %s - \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     h = isl_mat_right_kernel(h);
 
     PlutoMatrix *ortho = pluto_matrix_from_isl_mat(h);
@@ -745,6 +758,7 @@ PlutoConstraints **get_stmt_ortho_constraints(Stmt *stmt, const PlutoProg *prog,
     isl_basic_set_free(isl_currcst);
     isl_ctx_free(ctx);
 
+    printf("Line %d %s %s - done \n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     return orthcst;
 }
 

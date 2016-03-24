@@ -1822,6 +1822,7 @@ static int basic_map_extract_dep(__isl_take isl_basic_map *bmap, void *user)
     struct pluto_extra_dep_info *info;
 
     info = (struct pluto_extra_dep_info *)user;
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
     stmts = info->stmts;
 
@@ -1840,6 +1841,7 @@ static int basic_map_extract_dep(__isl_take isl_basic_map *bmap, void *user)
     pluto_constraints_set_names_range(dep->dpolytope,
             stmts[dep->src]->iterators, 0, 0, stmts[dep->src]->dim);
 
+    printf("Line %d %s\n",__LINE__,__FILE__);
     /* suffix the destination iterators with a '*/
     char **dnames = malloc(stmts[dep->dest]->dim*sizeof(char *));
     for (j=0; j<stmts[dep->dest]->dim; j++) {
@@ -1854,6 +1856,7 @@ static int basic_map_extract_dep(__isl_take isl_basic_map *bmap, void *user)
     }
     free(dnames);
 
+    printf("Line %d %s\n",__LINE__,__FILE__);
     /* parameters */
     pluto_constraints_set_names_range(dep->dpolytope,
             stmts[dep->dest]->domain->names,
@@ -1864,10 +1867,14 @@ static int basic_map_extract_dep(__isl_take isl_basic_map *bmap, void *user)
     // pluto_stmt_print(stdout, stmts[dep->src]);
     // pluto_stmt_print(stdout, stmts[dep->dest]);
     // printf("Src acc: %d dest acc: %d\n", src_acc_num, dest_acc_num);
+    printf("Line %d %s\n",__LINE__,__FILE__);
+    printf("dep->dest %d src %d \n",dep->dest, dep->src);
+    printf("options %d\n",options);
 
     if (options->isldepaccesswise && 
             (stmts[dep->src]->reads != NULL && stmts[dep->dest]->reads != NULL)) {
         /* Extract access function information */
+    printf("Line %d %s\n",__LINE__,__FILE__);
         int src_acc_num, dest_acc_num;
         const char *name;
         name = isl_basic_map_get_tuple_name(bmap, isl_dim_in) + 2;
@@ -1879,6 +1886,7 @@ static int basic_map_extract_dep(__isl_take isl_basic_map *bmap, void *user)
         while (*name != '\0' && *(name++) != '_');
         if (*name != '\0') dest_acc_num = atoi(name+1);
         else assert(0); // access function num not encoded in dependence
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
         switch (info->type) {
             case OSL_DEPENDENCE_RAW: 
@@ -1900,10 +1908,12 @@ static int basic_map_extract_dep(__isl_take isl_basic_map *bmap, void *user)
             default:
                 assert(0);
         }
+    printf("Line %d %s\n",__LINE__,__FILE__);
     }else{
         dep->src_acc = NULL;
         dep->dest_acc = NULL;
     }
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
     info->index++;
     isl_basic_map_free(bmap);
@@ -2003,11 +2013,14 @@ static void compute_deps(osl_scop_p scop, PlutoProg *prog,
     param_space = isl_space_params(isl_space_copy(dim));
     context = osl_relation_to_isl_set(scop->context, param_space);
 
+    printf("Line %d %s\n",__LINE__,__FILE__);
+
     if (!options->rar) dep_rar = isl_union_map_empty(isl_dim_copy(dim));
     empty = isl_union_map_empty(isl_dim_copy(dim));
     write = isl_union_map_empty(isl_dim_copy(dim));
     read = isl_union_map_empty(isl_dim_copy(dim));
     schedule = isl_union_map_empty(dim);
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
     if (!options->isldepaccesswise) {
         /* Leads to fewer dependences. Each dependence may not have a unique
@@ -2162,6 +2175,8 @@ static void compute_deps(osl_scop_p scop, PlutoProg *prog,
             }
         }
     }
+
+    printf("Line %d %s\n",__LINE__,__FILE__);
     // isl_union_map_dump(read);
     // isl_union_map_dump(write);
     // isl_union_map_dump(schedule);
@@ -2228,28 +2243,35 @@ static void compute_deps(osl_scop_p scop, PlutoProg *prog,
         }
     }
 
+    printf("Line %d %s\n",__LINE__,__FILE__);
+
     if (options->isldepcoalesce) {
         dep_raw = isl_union_map_coalesce(dep_raw);
         dep_war = isl_union_map_coalesce(dep_war);
         dep_waw = isl_union_map_coalesce(dep_waw);
         dep_rar = isl_union_map_coalesce(dep_rar);
     }
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
     prog->ndeps = 0;
     isl_union_map_foreach_map(dep_raw, &isl_map_count, &prog->ndeps);
     isl_union_map_foreach_map(dep_war, &isl_map_count, &prog->ndeps);
     isl_union_map_foreach_map(dep_waw, &isl_map_count, &prog->ndeps);
     isl_union_map_foreach_map(dep_rar, &isl_map_count, &prog->ndeps);
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
     prog->deps = (Dep **)malloc(prog->ndeps * sizeof(Dep *));
     for (i=0; i<prog->ndeps; i++) {
         prog->deps[i] = pluto_dep_alloc();
     }
+    printf("Line %d %s\n",__LINE__,__FILE__);
     prog->ndeps = 0;
     prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_raw, OSL_DEPENDENCE_RAW);
     prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_war, OSL_DEPENDENCE_WAR);
     prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_waw, OSL_DEPENDENCE_WAW);
     prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_rar, OSL_DEPENDENCE_RAR);
+
+    printf("Line %d %s\n",__LINE__,__FILE__);
 
     if (options->lastwriter) {
         if (options->isldepcoalesce) {
@@ -2290,9 +2312,370 @@ static void compute_deps(osl_scop_p scop, PlutoProg *prog,
     isl_union_map_free(schedule);
     isl_set_free(context);
 
+    printf("Line %d %s\n",__LINE__,__FILE__);
+
     if(names) osl_names_free(names);
 
     isl_ctx_free(ctx);
+}
+
+
+/* Temporary data structure used inside extra_stmt_domains
+ *
+ * stmts points to the array of Stmts being constructed
+ * index is the index of the next stmt in the array
+ */
+struct pluto_extra_stmt_info {
+    Stmt **stmts;
+    int index;
+};
+
+static int extract_basic_set(__isl_take isl_basic_set *bset, void *user)
+{
+    Stmt **stmts;
+    Stmt *stmt;
+    PlutoConstraints *bcst;
+    struct pluto_extra_stmt_info *info;
+
+    info = (struct pluto_extra_stmt_info *)user;
+
+    stmts = info->stmts;
+    stmt = stmts[info->index];
+
+    isl_basic_set_dump( bset );
+    printf("Line %d %s basic set to pluto constraint\n",__LINE__,__FILE__);
+    bcst = isl_basic_set_to_pluto_constraints(bset);
+    if (stmt->domain) {
+        stmt->domain = pluto_constraints_unionize_simple(stmt->domain, bcst);
+        pluto_constraints_free(bcst);
+    }else{
+        stmt->domain = bcst;
+    }
+    printf("Line %d %s basic set to pluto constraint done\n",__LINE__,__FILE__);
+
+    isl_basic_set_free(bset);
+    return 0;
+}
+
+/* Used by libpluto interface */
+static int extract_stmt(__isl_take isl_set *set, void *user)
+{
+    printf("Line %d %s\n",__LINE__,__FILE__);
+    fprintf(stderr,"dumping isl set\n");
+    isl_set_dump( set );
+    fprintf(stderr,"done dumping isl set\n");
+    int r;
+    Stmt **stmts;
+    int id, i;
+
+    stmts = (Stmt **) user;
+
+    printf("Line %d %s\n",__LINE__,__FILE__);
+    int dim = isl_set_dim(set, isl_dim_all);
+    printf("Line %d %s dims %d\n",__LINE__,__FILE__,dim);
+    int npar = isl_set_dim(set, isl_dim_param);
+    PlutoMatrix *trans = pluto_matrix_alloc(dim-npar, dim+1);
+    pluto_matrix_set(trans, 0);
+    trans->nrows = 0;
+
+    /* A statement's domain (isl_set) should be named S_%d */
+    const char *name = isl_set_get_tuple_name(set);
+    assert(name);
+    assert(strlen(name) >= 3);
+    assert(name[0] == 'S');
+    assert(name[1] == '_');
+    assert(isdigit(name[2]));
+    id = atoi(isl_set_get_tuple_name(set)+2);
+
+    printf("Line %d %s allocating a statement with %d dim-npar at id %d\n",__LINE__,__FILE__,dim-npar,id);
+    stmts[id] = pluto_stmt_alloc(dim-npar, NULL, trans);
+
+    Stmt *stmt = stmts[id];
+    stmt->type = ORIG;
+    stmt->id = id;
+
+    for (i=0; i<stmt->dim; i++) {
+        char *iter = malloc(5);
+        sprintf(iter, "i%d",  i);
+        stmt->iterators[i] = iter;
+	printf("Line %d %s new iterator %s\n",__LINE__,__FILE__, stmt->iterators[i]);
+    }
+
+    printf("Line %d %s\n",__LINE__,__FILE__);
+    struct pluto_extra_stmt_info info = {stmts, id};
+    r = isl_set_foreach_basic_set(set, &extract_basic_set, &info);
+
+    pluto_constraints_set_names_range(stmt->domain, stmt->iterators, 0, 0, stmt->dim);
+
+    for (i=0; i<npar; i++) {
+        char *param = malloc(5);
+        sprintf(param, "p%d", i);
+        stmt->domain->names[stmt->dim+i] = param;
+	printf("Line %d %s new parameter %s\n",__LINE__,__FILE__, stmt->domain->names[stmt->dim+i]);
+    }
+
+    printf("Line %d %s\n",__LINE__,__FILE__);
+    pluto_matrix_free(trans);
+
+    int j;
+    for (j=0; j<stmt->dim; j++)  {
+        stmt->is_orig_loop[j] = true;
+	printf("Line %d %s is_orig_loop true\n",__LINE__,__FILE__);
+    }
+
+    isl_set_free(set);
+
+    return r;
+}
+
+/* Used by libpluto interface */
+static int extract_stmts(__isl_keep isl_union_set *domains, Stmt **stmts)
+{
+    printf("Line %d %s\n",__LINE__,__FILE__);
+    isl_union_set_foreach_set(domains, &extract_stmt, stmts);
+    printf("Line %d %s\n",__LINE__,__FILE__);
+
+    return 0;
+}
+
+
+
+PlutoProg* pluto_compute_deps( isl_union_map* schedule, 
+    isl_union_map* read, 
+    isl_union_map* write, 
+    isl_union_map* empty, 
+    isl_union_set* domains,
+    PlutoOptions* options 
+    ){
+
+  fprintf(stderr,"domains\n");
+  isl_union_set_dump( domains );
+  fprintf(stderr,"schedule\n");
+  isl_union_set_dump( schedule );
+  fprintf(stderr,"read\n");
+  isl_union_set_dump( read );
+  fprintf(stderr,"write\n");
+  isl_union_set_dump( write );
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  PlutoProg* prog =  pluto_prog_alloc() ;
+
+  prog->options = options;
+
+  prog->nvar = -1;
+  prog->nstmts = isl_union_set_n_set(domains);
+  printf("Line %d %s nstmts\n",__LINE__,__FILE__,prog->nstmts);
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  if (prog->nstmts >= 1) {
+      printf("allocating %d statement pointers\n",prog->nstmts);
+      prog->stmts = (Stmt **)malloc(prog->nstmts * sizeof(Stmt *));
+      printf("prog->stmts %d\n",prog->stmts);
+  }else{
+      prog->stmts = NULL;
+  }
+
+  printf("Line %d %s zero the statement pointers\n",__LINE__,__FILE__);
+  for (int i=0; i<prog->nstmts; i++) {
+      prog->stmts[i] = NULL;
+  }
+
+  printf("Line %d %s %d\n",__LINE__,__FILE__, domains);
+  extract_stmts(domains, prog->stmts);
+
+  printf("Line %d %s nstmt %d\n",__LINE__,__FILE__,prog->nstmts);
+  for (int i=0; i<prog->nstmts; i++) {
+      printf("prog->stmts[i] %d\n", prog->stmts[i]);
+      printf("prog->nvar %d dim %d\n", prog->nvar, prog->stmts[i]->dim);
+      prog->nvar = PLMAX(prog->nvar, prog->stmts[i]->dim);
+      printf("prog->nvar %d\n", prog->nvar);
+  }
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  if (prog->nstmts >= 1) {
+      Stmt *stmt = prog->stmts[0];
+      prog->npar = stmt->domain->ncols - stmt->dim - 1;
+      prog->params = (char **) malloc(sizeof(char *)*prog->npar);
+  }else prog->npar = 0;
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  for (int i=0; i<prog->npar; i++) {
+      char *param = malloc(5);
+      sprintf(param, "p%d", i);
+      prog->params[i] = param;
+  }
+
+
+  isl_union_map *dep_raw, *dep_war, *dep_waw, *dep_rar, *trans_dep_war;
+  isl_union_map *trans_dep_waw;
+
+  if (!options->rar) dep_rar = isl_union_map_copy(empty);
+
+  // do the dependency calculation 
+
+  if (options->lastwriter) {
+      // compute RAW dependences which do not contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(read),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(schedule),
+	      &dep_raw, NULL, NULL, NULL);
+      // isl_union_map_dump(dep_raw);
+      // compute WAW and WAR dependences which do not contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(read),
+	      isl_union_map_copy(schedule),
+	      &dep_waw, &dep_war, NULL, NULL);
+      // compute WAR dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(read),
+	      isl_union_map_copy(schedule),
+	      NULL, &trans_dep_war, NULL, NULL);
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(schedule),
+	      NULL, &trans_dep_waw, NULL, NULL);
+      if (options->rar) {
+	  // compute RAR dependences which do not contain transitive dependences
+	  isl_union_map_compute_flow(isl_union_map_copy(read),
+		  isl_union_map_copy(read),
+		  isl_union_map_copy(empty),
+		  isl_union_map_copy(schedule),
+		  &dep_rar, NULL, NULL, NULL);
+      }
+  }else{
+      // compute RAW dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(read),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(schedule),
+	      NULL, &dep_raw, NULL, NULL);
+      // compute WAR dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(read),
+	      isl_union_map_copy(schedule),
+	      NULL, &dep_war, NULL, NULL);
+      // compute WAW dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(schedule),
+	      NULL, &dep_waw, NULL, NULL);
+      if (options->rar) {
+	  // compute RAR dependences which may contain transitive dependences
+	  isl_union_map_compute_flow(isl_union_map_copy(read),
+		  isl_union_map_copy(empty),
+		  isl_union_map_copy(read),
+		  isl_union_map_copy(schedule),
+		  NULL, &dep_rar, NULL, NULL);
+      }
+  }
+
+  printf( "dumping dependences\n" );
+
+  fprintf(stderr,"dep_raw\n");
+  isl_union_map_dump(dep_raw);
+  fprintf(stderr,"dep_war\n");
+  isl_union_map_dump(dep_war);
+  fprintf(stderr,"dep_waw\n");
+  isl_union_map_dump(dep_waw);
+  fprintf(stderr,"dep_rar\n");
+  isl_union_map_dump(dep_rar);
+
+  printf( "done dumping dependences\n" );
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr, "isldepcoalesce\n");
+#if 1
+
+  if (options->isldepcoalesce) {
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      dep_raw = isl_union_map_coalesce(dep_raw);
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      dep_war = isl_union_map_coalesce(dep_war);
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      dep_waw = isl_union_map_coalesce(dep_waw);
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      dep_rar = isl_union_map_coalesce(dep_rar);
+  }
+
+  fprintf(stderr,"dep_raw\n");
+  isl_union_map_dump(dep_raw);
+  fprintf(stderr,"dep_war\n");
+  isl_union_map_dump(dep_war);
+  fprintf(stderr,"dep_waw\n");
+  isl_union_map_dump(dep_waw);
+  fprintf(stderr,"dep_rar\n");
+  isl_union_map_dump(dep_rar);
+  printf("Line %d %s\n",__LINE__,__FILE__);
+
+  prog->ndeps = 0;
+  isl_union_map_foreach_map(dep_raw, &isl_map_count, &prog->ndeps);
+  isl_union_map_foreach_map(dep_war, &isl_map_count, &prog->ndeps);
+  isl_union_map_foreach_map(dep_waw, &isl_map_count, &prog->ndeps);
+  isl_union_map_foreach_map(dep_rar, &isl_map_count, &prog->ndeps);
+  printf("Line %d %s\n",__LINE__,__FILE__);
+
+  prog->deps = (Dep **)malloc(prog->ndeps * sizeof(Dep *));
+  for (int i=0; i<prog->ndeps; i++) {
+      prog->deps[i] = pluto_dep_alloc();
+  }
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  prog->ndeps = 0;
+  prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_raw, OSL_DEPENDENCE_RAW);
+  prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_war, OSL_DEPENDENCE_WAR);
+  prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_waw, OSL_DEPENDENCE_WAW);
+  prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_rar, OSL_DEPENDENCE_RAR);
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+
+  if (options->lastwriter) {
+      if (options->isldepcoalesce) {
+	  trans_dep_war = isl_union_map_coalesce(trans_dep_war);
+	  trans_dep_waw = isl_union_map_coalesce(trans_dep_waw);
+      }
+
+      prog->ntransdeps = 0;
+      isl_union_map_foreach_map(dep_raw, &isl_map_count, &prog->ntransdeps);
+      isl_union_map_foreach_map(trans_dep_war, &isl_map_count, &prog->ntransdeps);
+      isl_union_map_foreach_map(trans_dep_waw, &isl_map_count, &prog->ntransdeps);
+      isl_union_map_foreach_map(dep_rar, &isl_map_count, &prog->ntransdeps);
+
+      if (prog->ntransdeps >= 1) {
+	  prog->transdeps = (Dep **)malloc(prog->ntransdeps * sizeof(Dep *));
+	  for (int i=0; i<prog->ntransdeps; i++) {
+	      prog->transdeps[i] = pluto_dep_alloc();
+	  }
+	  prog->ntransdeps = 0;
+	  prog->ntransdeps += extract_deps(prog->transdeps, prog->ntransdeps, prog->stmts, dep_raw, OSL_DEPENDENCE_RAW);
+	  prog->ntransdeps += extract_deps(prog->transdeps, prog->ntransdeps, prog->stmts, trans_dep_war, OSL_DEPENDENCE_WAR);
+	  prog->ntransdeps += extract_deps(prog->transdeps, prog->ntransdeps, prog->stmts, trans_dep_waw, OSL_DEPENDENCE_WAW);
+	  prog->ntransdeps += extract_deps(prog->transdeps, prog->ntransdeps, prog->stmts, dep_rar, OSL_DEPENDENCE_RAR);
+      }
+
+      isl_union_map_free(trans_dep_war);
+      isl_union_map_free(trans_dep_waw);
+  }
+
+#if 0
+  isl_union_map_free(dep_raw);
+  isl_union_map_free(dep_war);
+  isl_union_map_free(dep_waw);
+  isl_union_map_free(dep_rar);
+  isl_union_map_free(empty);
+  isl_union_map_free(write);
+  isl_union_map_free(read);
+  isl_union_map_free(schedule);
+  isl_set_free(context);
+#endif
+#endif
+
+  return prog;
+
 }
 
 /*scoplib_matrix_p get_identity_schedule(int dim, int npar){
@@ -2369,12 +2752,15 @@ PlutoProg *scop_to_pluto_prog(osl_scop_p scop, PlutoOptions *options)
         prog->codegen_context->val[i][prog->codegen_context->ncols-1] = -options->codegen_context;
       }
     }
+    printf("test codegen_context\n");
     read_codegen_context_from_file(prog->codegen_context);
+    printf("test codegen_context done\n");
 
     prog->nstmts = osl_statement_number(scop->statement);
     prog->options = options;
 
     /* Data variables in the program */
+    printf("data vars\n");
     osl_arrays_p arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
     if(arrays==NULL){
         prog->num_data = 0;
@@ -2400,7 +2786,9 @@ PlutoProg *scop_to_pluto_prog(osl_scop_p scop, PlutoOptions *options)
 
     prog->stmts = osl_to_pluto_stmts(scop);
     prog->scop = scop;
+    printf("data vars done \n");
 
+    printf("compute deps \n");
     /* Compute dependences */
     if (options->isldep) {
         compute_deps(scop, prog, options);
@@ -2430,6 +2818,7 @@ PlutoProg *scop_to_pluto_prog(osl_scop_p scop, PlutoOptions *options)
         prog->transdeps = NULL;
         prog->ntransdeps = 0;
     }
+    printf("compute deps done\n");
 
     /* Add hyperplanes */
     if (prog->nstmts >= 1) {
@@ -3052,6 +3441,7 @@ Stmt *pluto_stmt_alloc(int dim,
     /* Have to provide a transformation */
     assert(trans != NULL);
 
+    printf("Line %d %s allocating a statement\n",__LINE__,__FILE__);
     Stmt *stmt = (Stmt *) malloc(sizeof(Stmt));
 
     /* id will be assigned when added to PlutoProg */

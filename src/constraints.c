@@ -2081,6 +2081,7 @@ void pluto_constraints_set_names_range(PlutoConstraints *cst, char **names,
     for (i=0; i<num; i++) {
         if (names[src_offset+i] != NULL) {
             cst->names[dest_offset+i] = strdup(names[src_offset+i]);
+	    printf("Line %d %s basic set to pluto constraint\n",__LINE__,__FILE__);
         }else{
             cst->names[dest_offset+i] = NULL;
         }
