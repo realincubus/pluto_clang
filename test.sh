@@ -4,7 +4,10 @@ cd test
 make clean > /dev/null 2>&1
 cd ..
 
-TESTS="test/jacobi-1d-imper.c \
+TESTS="\
+test/mixed_types.c \
+test/increment_2.c \
+test/jacobi-1d-imper.c \
 test/jacobi-2d-imper.c \
 test/matmul.c \
 test/costfunc.c \
@@ -42,12 +45,13 @@ test/tricky3.c \
 test/tricky4.c \
 test/ludcmp.c \
 test/tce-4index-transform.c \
-test/noloop.c \
-test/deep.c"
+test/noloop.c"
+
+# takes forever test/deep.c
 
 for file in $TESTS; do
 	echo -e "$file"
-	./polycc $file $*  -o test_temp_out.pluto.c
+	./polycc $file $*  -o test_temp_out.pluto.c 2>&1 > $file.out  #> /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo -e "\e[31mFailed\e[0m" " $file"!
     else

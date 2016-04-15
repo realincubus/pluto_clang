@@ -14,7 +14,7 @@ OPTS="--iss --islsolve"
 for file in $TESTS; do
 	echo -e "$file" 
     echo ./polycc $OPTS $file $*  -o test_temp_out.pluto.c
-    ./polycc $OPTS $file $*  -o test_temp_out.pluto.c
+    ./polycc $OPTS $file $*  -o test_temp_out.pluto.c > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo Failed test case "$file"!
         break
@@ -25,7 +25,7 @@ OPTS="--iss --islsolve --lbtile --parallel"
 for file in $TESTS; do
 	echo -e "$file" 
     echo ./polycc $OPTS $file $*  -o test_temp_out.pluto.c
-    ./polycc $OPTS $file $*  -o test_temp_out.pluto.c
+    ./polycc $OPTS $file $*  -o test_temp_out.pluto.c > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo Failed test case "$file"!
         break

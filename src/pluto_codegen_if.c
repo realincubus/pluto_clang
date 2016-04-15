@@ -85,10 +85,12 @@ void pluto_gen_cloog_file(FILE *fp, const PlutoProg *prog)
 
     /* Context: setting conditions on parameters */
     PlutoConstraints *ctx = pluto_constraints_dup(prog->context);
-    pluto_constraints_intersect_isl(ctx, prog->codegen_context);
+    // TODO disabled because prog->codegen_context is not set
+    //pluto_constraints_intersect_isl(ctx, prog->codegen_context);
     pluto_constraints_print_polylib(fp, ctx);
     pluto_constraints_free(ctx);
 
+    fprintf(fp, "# parameter names \n\n");
     /* Setting parameter names */
     fprintf(fp, "\n1\n");
     for (i=0; i<npar; i++)  {

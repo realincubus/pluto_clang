@@ -2439,12 +2439,20 @@ static int extract_stmts(__isl_keep isl_union_set *domains, Stmt **stmts)
 }
 
 
+#if 0
+int get_basic_set_name( isl_basic_set* bset, void* user)
+{
+  const char* name = isl_basic_set_get_tuple_name( bset );
+  fprintf(stderr,"basic set name is %s\n", name );
+}
+#endif
 
 PlutoProg* pluto_compute_deps( isl_union_map* schedule, 
     isl_union_map* read, 
     isl_union_map* write, 
     isl_union_map* empty, 
     isl_union_set* domains,
+    isl_set* context,
     PlutoOptions* options 
     ){
 
@@ -2460,11 +2468,19 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
   printf("Line %d %s\n",__LINE__,__FILE__);
   PlutoProg* prog =  pluto_prog_alloc() ;
 
+  // add context constraints
+  if ( context ){
+    prog->context = isl_set_to_pluto_constraints( context );
+  }
+
+  pluto_constraints_print( stderr, prog->context );
+
   prog->options = options;
 
   prog->nvar = -1;
   prog->nstmts = isl_union_set_n_set(domains);
-  printf("Line %d %s nstmts\n",__LINE__,__FILE__,prog->nstmts);
+
+  printf("Line %d %s nstmts %d \n",__LINE__,__FILE__,prog->nstmts);
 
   printf("Line %d %s\n",__LINE__,__FILE__);
   if (prog->nstmts >= 1) {
@@ -2480,8 +2496,9 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
       prog->stmts[i] = NULL;
   }
 
-  printf("Line %d %s %d\n",__LINE__,__FILE__, domains);
+  printf("Line %d %s\n",__LINE__,__FILE__);
   extract_stmts(domains, prog->stmts);
+   
 
   printf("Line %d %s nstmt %d\n",__LINE__,__FILE__,prog->nstmts);
   for (int i=0; i<prog->nstmts; i++) {
@@ -2493,18 +2510,42 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
 
   printf("Line %d %s\n",__LINE__,__FILE__);
   if (prog->nstmts >= 1) {
-      Stmt *stmt = prog->stmts[0];
-      prog->npar = stmt->domain->ncols - stmt->dim - 1;
-      prog->params = (char **) malloc(sizeof(char *)*prog->npar);
-  }else prog->npar = 0;
-
-  printf("Line %d %s\n",__LINE__,__FILE__);
-  for (int i=0; i<prog->npar; i++) {
-      char *param = malloc(5);
-      sprintf(param, "p%d", i);
-      prog->params[i] = param;
+    Stmt *stmt = prog->stmts[0];
+    prog->npar = stmt->domain->ncols - stmt->dim - 1;
+    prog->params = (char **) malloc(sizeof(char *)*prog->npar);
+    fprintf(stderr,"Line %d %s npar %d ncols %d dim %d\n",__LINE__,__FILE__,prog->npar,stmt->domain->ncols,stmt->dim);
+  }else{
+    prog->npar = 0;
   }
 
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
+
+  // TODO do not recreate the values but get them from the context
+  if ( context ) {
+    fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
+
+    // if dont know in which order theses things might be
+    // first lets hope for the best
+    const char* name = isl_set_get_dim_name( context, isl_dim_param, 0 );
+
+    int n_parameters = isl_set_n_param( context ); 
+    fprintf(stderr,"context has %d parameters\n", n_parameters);
+    for (int i = 0; i < n_parameters; ++i){
+      const char* name = isl_set_get_dim_name( context, isl_dim_param, i );
+      fprintf( stderr, "tuple name %d is %s\n", i, name);
+      prog->params[i] = strdup(name);
+    }
+    fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
+  }else{
+    fprintf(stderr, "there is no context so fill this with new names");
+    for (int i=0; i<prog->npar; i++) {
+	char *param = malloc(5);
+	sprintf(param, "p%d", i);
+	prog->params[i] = param;
+    }
+  }
+
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
 
   isl_union_map *dep_raw, *dep_war, *dep_waw, *dep_rar, *trans_dep_war;
   isl_union_map *trans_dep_waw;
