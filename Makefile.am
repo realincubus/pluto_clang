@@ -59,6 +59,23 @@ test_libpluto: src/test_libpluto.c
 
 test: .PHO
 
+install-data-local:
+	@test -z "$(DESTDIR)$(libdir)/pluto" || $(mkdir_p) "$(DESTDIR)$(libdir)/pluto"
+	$(INSTALL_DATA) "$(top_srcdir)/cmake/pluto-config.cmake" "$(DESTDIR)$(libdir)/pluto/"
+	
+uninstall-local:
+	rm -f "$(DESTDIR)$(libdir)/pluto/pluto-config.cmake"
+
+
+total:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                     pluto                     *"
+	@echo "              *-----------------------------------------------*/"
+	$(MAKE) uninstall
+	$(MAKE) clean
+	$(MAKE)
+	$(MAKE) install
+
 .PHO: 
 	./test.sh --silent --lastwriter
 	./test.sh --silent --lastwriter --tile --parallel --cloogsh --nocloogbacktrack
