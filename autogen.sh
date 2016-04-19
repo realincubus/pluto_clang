@@ -42,4 +42,10 @@ cd clan
 ./autogen.sh
 cd ..
 
+echo -e "\n*** Running autotools on pluto_codegen_cxx ***"
+cd pluto_codegen_cxx
+./autogen.sh
+cd ..
+
+
 cd ..

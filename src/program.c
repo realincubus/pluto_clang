@@ -2345,10 +2345,15 @@ static int extract_basic_set(__isl_take isl_basic_set *bset, void *user)
     isl_basic_set_dump( bset );
     printf("Line %d %s basic set to pluto constraint\n",__LINE__,__FILE__);
     bcst = isl_basic_set_to_pluto_constraints(bset);
+    fprintf(stderr,"new basic set for statement\n");
+    pluto_constraints_print( stderr, bcst );
     if (stmt->domain) {
+	fprintf(stderr,"already have a domain for this statement unionizing this result:\n");
         stmt->domain = pluto_constraints_unionize_simple(stmt->domain, bcst);
+	pluto_constraints_print( stderr, stmt->domain );
         pluto_constraints_free(bcst);
     }else{
+	fprintf(stderr,"no domain for this statement setting this constraint as the domain\n");
         stmt->domain = bcst;
     }
     printf("Line %d %s basic set to pluto constraint done\n",__LINE__,__FILE__);
@@ -2364,7 +2369,7 @@ static int extract_stmt(__isl_take isl_set *set, void *user)
     fprintf(stderr,"dumping isl set\n");
     isl_set_dump( set );
     fprintf(stderr,"done dumping isl set\n");
-    int r;
+    int r = 0;
     Stmt **stmts;
     int id, i;
 
@@ -2404,6 +2409,11 @@ static int extract_stmt(__isl_take isl_set *set, void *user)
     printf("Line %d %s\n",__LINE__,__FILE__);
     struct pluto_extra_stmt_info info = {stmts, id};
     r = isl_set_foreach_basic_set(set, &extract_basic_set, &info);
+    //stmt->domain = isl_set_to_pluto_constraints( set );
+
+    fprintf( stderr, "constraints from set of stmt %d\n", stmt->id );
+    pluto_constraints_print( stderr, stmt->domain );
+    fprintf( stderr, "done constraints from set of stmt %d\n", stmt->id );
 
     pluto_constraints_set_names_range(stmt->domain, stmt->iterators, 0, 0, stmt->dim);
 
@@ -2453,8 +2463,10 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
     isl_union_map* empty, 
     isl_union_set* domains,
     isl_set* context,
-    PlutoOptions* options 
+    PlutoOptions* _options 
     ){
+
+  options = _options;
 
   fprintf(stderr,"domains\n");
   isl_union_set_dump( domains );
@@ -2520,7 +2532,7 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
 
   fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
 
-  // TODO do not recreate the values but get them from the context
+  // do not recreate the values but get them from the context
   if ( context ) {
     fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
 

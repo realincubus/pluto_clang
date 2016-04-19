@@ -314,7 +314,7 @@ PlutoConstraints *pluto_constraints_add(PlutoConstraints *cst1, const PlutoConst
     assert(cst2 != NULL);
     assert(cst1->ncols == cst2->ncols);
     assert(cst1->next == NULL);
-    assert(cst2->next == NULL);
+    //assert(cst2->next == NULL);
 
     if (cst1->nrows+cst2->nrows > cst1->alloc_nrows) {
         pluto_constraints_resize(cst1, cst1->nrows+cst2->nrows, cst1->ncols);
@@ -329,6 +329,10 @@ PlutoConstraints *pluto_constraints_add(PlutoConstraints *cst1, const PlutoConst
     }
 
     memcpy(&cst1->is_eq[cst1->nrows-cst2->nrows], cst2->is_eq, cst2->nrows*sizeof(int));
+
+    if ( cst2->next ) {
+      return pluto_constraints_add( cst1 , cst2->next );
+    }
 
     return cst1;
 }

@@ -19,3 +19,6 @@
 [submodule "openscop"]
 	path = openscop
 	url = https://github.com/periscop/openscop.git
+[submodule "pluto_codegen_cxx"]
+	path = pluto_codegen_cxx
+	url = https://github.com/realincubus/pluto_codegen_cxx/

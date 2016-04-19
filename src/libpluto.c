@@ -407,6 +407,13 @@ int pluto_schedule_pluto( PlutoProg* prog, PlutoOptions* options ){
     printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
     int i, j, nbands, n_ibands, retval;
 
+    if (!options->silent)   {
+	fprintf(stdout, "[Pluto] Number of statements: %d\n", prog->nstmts);
+	fprintf(stdout, "[Pluto] Number of deps: %d\n", prog->ndeps);
+	fprintf(stdout, "[Pluto] Maximum domain dimensionality: %d\n", prog->nvar);
+	fprintf(stdout, "[Pluto] Number of parameters: %d\n", prog->npar);
+    }
+
     retval = pluto_auto_transform(prog);
 
 

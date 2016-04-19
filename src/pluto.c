@@ -1306,12 +1306,15 @@ void normalize_domains(PlutoProg *prog)
         pluto_constraints_set_names(context, prog->params);
         for (i=0; i<prog->nstmts; i++)    {
             PlutoConstraints *copy = pluto_constraints_dup(prog->stmts[i]->domain);
+	    pluto_constraints_print( stderr, copy );
+	    fprintf(stderr,"dim_orig %d\n",prog->stmts[i]->dim_orig);
             for (j=0; j<prog->stmts[i]->dim_orig; j++)    {
                 fourier_motzkin_eliminate(copy, 0);
             }
             assert(copy->ncols == npar+1);
             count += copy->nrows;
 
+	    fprintf(stderr,"npar %d, count %d,  nstmts %d\n",npar, count,prog->nstmts);
             if (count <= prog->nstmts*npar)    {
                 pluto_constraints_add(context, copy);
                 pluto_constraints_free(copy);

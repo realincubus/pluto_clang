@@ -392,6 +392,15 @@ PlutoConstraints *pluto_constraints_union_isl(const PlutoConstraints *cst1,
 {
     isl_set *set1 = isl_set_from_pluto_constraints(cst1, NULL);
     isl_set *set2 = isl_set_from_pluto_constraints(cst2, NULL);
+    fprintf(stderr, "in pluto_constraints_union_isl cst1 \n");
+    pluto_constraints_print( stderr, cst1 );
+    fprintf(stderr, "in pluto_constraints_union_isl cst1 \n");
+    pluto_constraints_print( stderr, cst2 );
+    fprintf(stderr, "in pluto_constraints_union_isl set1 \n");
+    isl_set_dump( set1 );
+    fprintf(stderr, "in pluto_constraints_union_isl set2 \n");
+    isl_set_dump( set2 );
+
     isl_set *set3 = isl_set_union(set1, set2);
 
     PlutoConstraints *ucst = isl_set_to_pluto_constraints(set3);
