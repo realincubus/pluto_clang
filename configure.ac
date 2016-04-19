@@ -248,6 +248,17 @@ fi
  ./configure ${configureopts} ${archopts}
  )
 
+dnl Configuring pluto_codegen_cxx 0.0.1 
+echo ""
+echo "=========================="
+echo "Configuring pluto_codegen_cxx"
+echo "=========================="
+configureopts="\
+--prefix=$prefix"
+(cd pluto_codegen_cxx/
+ ./configure ${configureopts} ${archopts}
+ )
+
 AC_PATH_PROGS(BASH, bash)
 
 AC_CONFIG_FILES([getversion.sh], [chmod +x ./getversion.sh])
