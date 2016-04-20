@@ -3,7 +3,9 @@
 #include "isl/union_set.h"
 #include "isl/union_map.h"
 
+#ifdef WITH_OSL
 #include "osl/scop.h"
+#endif
 
 #if defined(__cplusplus)
 extern "C" {
@@ -169,9 +171,10 @@ void pluto_options_free(PlutoOptions *);
 __isl_give isl_union_map *pluto_schedule(isl_union_set *domains,
         isl_union_map *dependences,
         PlutoOptions *options);
-
+#ifdef WITH_OSL
 int pluto_schedule_osl(osl_scop_p scop, 
         PlutoOptions *options_l);
+#endif
 #if defined(__cplusplus)
 }
 #endif
