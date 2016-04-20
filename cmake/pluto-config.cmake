@@ -13,9 +13,13 @@ endif()
 find_path(PLUTO_INCLUDE_DIR NAMES pluto/libpluto.h)
 find_library(PLUTO_LIBRARY NAMES pluto)
 
+set ( PLUTO_INCLUDE_DIR "${PLUTO_INCLUDE_DIR}/pluto/" )
+
 if (PLUTO_LIBRARY AND PLUTO_INCLUDE_DIR)
+	message(STATUS "Include pluto found =) ${PLUTO_INCLUDE_DIR}")
 	message(STATUS "Library pluto found =) ${PLUTO_LIBRARY}")
 else()
+	message(STATUS "Include pluto not found =(")
 	message(STATUS "Library pluto not found =(")
 endif()
 
