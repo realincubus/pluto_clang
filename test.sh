@@ -5,8 +5,6 @@ make clean > /dev/null 2>&1
 cd ..
 
 TESTS="\
-test/mixed_types.c \
-test/increment_2.c \
 test/jacobi-1d-imper.c \
 test/jacobi-2d-imper.c \
 test/matmul.c \
@@ -51,7 +49,7 @@ test/noloop.c"
 
 for file in $TESTS; do
 	echo -e "$file"
-	./polycc $file $*  -o test_temp_out.pluto.c 2>&1 > $file.out  #> /dev/null 2>&1
+	./polycc $file $*  -o test_temp_out.pluto.c > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo -e "\e[31mFailed\e[0m" " $file"!
     else
