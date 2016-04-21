@@ -12,8 +12,8 @@ endif()
 
 find_path(PLUTO_INCLUDE_DIR NAMES pluto/libpluto.h)
 find_library(PLUTO_LIBRARY NAMES pluto)
-find_program(POLYCC_BIN NAMES polycc)
-find_program(CLAN_BIN NAMES clan)
+find_program(POLYCC_BIN NAMES bin/polycc)
+find_program(CLAN_BIN NAMES bin/clan)
 
 set ( PLUTO_INCLUDE_DIR "${PLUTO_INCLUDE_DIR}/pluto/" )
 
