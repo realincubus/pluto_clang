@@ -2457,13 +2457,137 @@ int get_basic_set_name( isl_basic_set* bset, void* user)
 }
 #endif
 
+void compute_flow( PlutoOptions* options, 
+    isl_union_map* read,
+    isl_union_map* write,
+    isl_union_map* empty,
+    isl_union_map* schedule,
+
+    isl_union_map** dep_raw,
+    isl_union_map** dep_war,
+    isl_union_map** dep_waw,
+    isl_union_map** dep_rar,
+
+    isl_union_map** trans_dep_war, 
+    isl_union_map** trans_dep_waw 
+    ){
+
+
+  // do the dependency calculation 
+
+  if (options->lastwriter) {
+      // compute RAW dependences which do not contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(read),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(schedule),
+	      dep_raw, NULL, NULL, NULL);
+      // isl_union_map_dump(dep_raw);
+      // compute WAW and WAR dependences which do not contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(read),
+	      isl_union_map_copy(schedule),
+	      dep_waw, dep_war, NULL, NULL);
+      // compute WAR dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(read),
+	      isl_union_map_copy(schedule),
+	      NULL, trans_dep_war, NULL, NULL);
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(schedule),
+	      NULL, trans_dep_waw, NULL, NULL);
+      if (options->rar) {
+	  // compute RAR dependences which do not contain transitive dependences
+	  isl_union_map_compute_flow(isl_union_map_copy(read),
+		  isl_union_map_copy(read),
+		  isl_union_map_copy(empty),
+		  isl_union_map_copy(schedule),
+		  dep_rar, NULL, NULL, NULL);
+      }
+  }else{
+      // compute RAW dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(read),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(schedule),
+	      NULL, dep_raw, NULL, NULL);
+      // compute WAR dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(read),
+	      isl_union_map_copy(schedule),
+	      NULL, dep_war, NULL, NULL);
+      // compute WAW dependences which may contain transitive dependences
+      isl_union_map_compute_flow(isl_union_map_copy(write),
+	      isl_union_map_copy(empty),
+	      isl_union_map_copy(write),
+	      isl_union_map_copy(schedule),
+	      NULL, dep_waw, NULL, NULL);
+      if (options->rar) {
+	  // compute RAR dependences which may contain transitive dependences
+	  isl_union_map_compute_flow(isl_union_map_copy(read),
+		  isl_union_map_copy(empty),
+		  isl_union_map_copy(read),
+		  isl_union_map_copy(schedule),
+		  NULL, dep_rar, NULL, NULL);
+      }
+  }
+
+  printf( "dumping dependences\n" );
+
+  fprintf(stderr,"dep_raw\n");
+  isl_union_map_dump(*dep_raw);
+  fprintf(stderr,"dep_war\n");
+  isl_union_map_dump(*dep_war);
+  fprintf(stderr,"dep_waw\n");
+  isl_union_map_dump(*dep_waw);
+  fprintf(stderr,"dep_rar\n");
+  isl_union_map_dump(*dep_rar);
+
+  printf( "done dumping dependences\n" );
+
+  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr, "isldepcoalesce\n");
+#if 1
+
+  if (options->isldepcoalesce) {
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      *dep_raw = isl_union_map_coalesce(*dep_raw);
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      *dep_war = isl_union_map_coalesce(*dep_war);
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      *dep_waw = isl_union_map_coalesce(*dep_waw);
+      printf("Line %d %s\n",__LINE__,__FILE__);
+      *dep_rar = isl_union_map_coalesce(*dep_rar);
+  }
+
+  fprintf(stderr,"dep_raw\n");
+  isl_union_map_dump(*dep_raw);
+  fprintf(stderr,"dep_war\n");
+  isl_union_map_dump(*dep_war);
+  fprintf(stderr,"dep_waw\n");
+  isl_union_map_dump(*dep_waw);
+  fprintf(stderr,"dep_rar\n");
+  isl_union_map_dump(*dep_rar);
+  printf("Line %d %s\n",__LINE__,__FILE__);
+}
+
+
 PlutoProg* pluto_compute_deps( isl_union_map* schedule, 
     isl_union_map* read, 
     isl_union_map* write, 
     isl_union_map* empty, 
     isl_union_set* domains,
     isl_set* context,
-    PlutoOptions* _options 
+    PlutoOptions* _options,
+    isl_union_map* raw,
+    isl_union_map* war,
+    isl_union_map* waw,
+    isl_union_map* red
     ){
 
   options = _options;
@@ -2471,11 +2595,11 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
   fprintf(stderr,"domains\n");
   isl_union_set_dump( domains );
   fprintf(stderr,"schedule\n");
-  isl_union_set_dump( schedule );
+  isl_union_map_dump( schedule );
   fprintf(stderr,"read\n");
-  isl_union_set_dump( read );
+  isl_union_map_dump( read );
   fprintf(stderr,"write\n");
-  isl_union_set_dump( write );
+  isl_union_map_dump( write );
 
   printf("Line %d %s\n",__LINE__,__FILE__);
   PlutoProg* prog =  pluto_prog_alloc() ;
@@ -2559,113 +2683,37 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
 
   fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
 
+  // TODO dont calculate if passed to this function
   isl_union_map *dep_raw, *dep_war, *dep_waw, *dep_rar, *trans_dep_war;
   isl_union_map *trans_dep_waw;
 
   if (!options->rar) dep_rar = isl_union_map_copy(empty);
 
-  // do the dependency calculation 
+  // if dep calculation was not already done
+  if ( !(raw && war && waw && red) ) {
+    compute_flow( options, 
+	read,
+	write,
+	empty,
+	schedule,
 
-  if (options->lastwriter) {
-      // compute RAW dependences which do not contain transitive dependences
-      isl_union_map_compute_flow(isl_union_map_copy(read),
-	      isl_union_map_copy(write),
-	      isl_union_map_copy(empty),
-	      isl_union_map_copy(schedule),
-	      &dep_raw, NULL, NULL, NULL);
-      // isl_union_map_dump(dep_raw);
-      // compute WAW and WAR dependences which do not contain transitive dependences
-      isl_union_map_compute_flow(isl_union_map_copy(write),
-	      isl_union_map_copy(write),
-	      isl_union_map_copy(read),
-	      isl_union_map_copy(schedule),
-	      &dep_waw, &dep_war, NULL, NULL);
-      // compute WAR dependences which may contain transitive dependences
-      isl_union_map_compute_flow(isl_union_map_copy(write),
-	      isl_union_map_copy(empty),
-	      isl_union_map_copy(read),
-	      isl_union_map_copy(schedule),
-	      NULL, &trans_dep_war, NULL, NULL);
-      isl_union_map_compute_flow(isl_union_map_copy(write),
-	      isl_union_map_copy(empty),
-	      isl_union_map_copy(write),
-	      isl_union_map_copy(schedule),
-	      NULL, &trans_dep_waw, NULL, NULL);
-      if (options->rar) {
-	  // compute RAR dependences which do not contain transitive dependences
-	  isl_union_map_compute_flow(isl_union_map_copy(read),
-		  isl_union_map_copy(read),
-		  isl_union_map_copy(empty),
-		  isl_union_map_copy(schedule),
-		  &dep_rar, NULL, NULL, NULL);
-      }
+	&dep_raw, 
+	&dep_war, 
+	&dep_waw, 
+	&dep_rar, 
+	
+	&trans_dep_war, 
+	&trans_dep_waw 
+    );
   }else{
-      // compute RAW dependences which may contain transitive dependences
-      isl_union_map_compute_flow(isl_union_map_copy(read),
-	      isl_union_map_copy(empty),
-	      isl_union_map_copy(write),
-	      isl_union_map_copy(schedule),
-	      NULL, &dep_raw, NULL, NULL);
-      // compute WAR dependences which may contain transitive dependences
-      isl_union_map_compute_flow(isl_union_map_copy(write),
-	      isl_union_map_copy(empty),
-	      isl_union_map_copy(read),
-	      isl_union_map_copy(schedule),
-	      NULL, &dep_war, NULL, NULL);
-      // compute WAW dependences which may contain transitive dependences
-      isl_union_map_compute_flow(isl_union_map_copy(write),
-	      isl_union_map_copy(empty),
-	      isl_union_map_copy(write),
-	      isl_union_map_copy(schedule),
-	      NULL, &dep_waw, NULL, NULL);
-      if (options->rar) {
-	  // compute RAR dependences which may contain transitive dependences
-	  isl_union_map_compute_flow(isl_union_map_copy(read),
-		  isl_union_map_copy(empty),
-		  isl_union_map_copy(read),
-		  isl_union_map_copy(schedule),
-		  NULL, &dep_rar, NULL, NULL);
-      }
+    fprintf(stderr,"Line %d %s taking already calculated dependencies from outside\n",__LINE__,__FILE__);
+    dep_raw = raw;
+    dep_war = war;
+    dep_waw = waw;
+    // TODO dep_rar = rar;
+    // TODO continue to implement the passing of already calculated dependences to pluto
   }
-
-  printf( "dumping dependences\n" );
-
-  fprintf(stderr,"dep_raw\n");
-  isl_union_map_dump(dep_raw);
-  fprintf(stderr,"dep_war\n");
-  isl_union_map_dump(dep_war);
-  fprintf(stderr,"dep_waw\n");
-  isl_union_map_dump(dep_waw);
-  fprintf(stderr,"dep_rar\n");
-  isl_union_map_dump(dep_rar);
-
-  printf( "done dumping dependences\n" );
-
-  printf("Line %d %s\n",__LINE__,__FILE__);
-  fprintf(stderr, "isldepcoalesce\n");
-#if 1
-
-  if (options->isldepcoalesce) {
-      printf("Line %d %s\n",__LINE__,__FILE__);
-      dep_raw = isl_union_map_coalesce(dep_raw);
-      printf("Line %d %s\n",__LINE__,__FILE__);
-      dep_war = isl_union_map_coalesce(dep_war);
-      printf("Line %d %s\n",__LINE__,__FILE__);
-      dep_waw = isl_union_map_coalesce(dep_waw);
-      printf("Line %d %s\n",__LINE__,__FILE__);
-      dep_rar = isl_union_map_coalesce(dep_rar);
-  }
-
-  fprintf(stderr,"dep_raw\n");
-  isl_union_map_dump(dep_raw);
-  fprintf(stderr,"dep_war\n");
-  isl_union_map_dump(dep_war);
-  fprintf(stderr,"dep_waw\n");
-  isl_union_map_dump(dep_waw);
-  fprintf(stderr,"dep_rar\n");
-  isl_union_map_dump(dep_rar);
-  printf("Line %d %s\n",__LINE__,__FILE__);
-
+  
   prog->ndeps = 0;
   isl_union_map_foreach_map(dep_raw, &isl_map_count, &prog->ndeps);
   isl_union_map_foreach_map(dep_war, &isl_map_count, &prog->ndeps);
