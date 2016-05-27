@@ -2392,6 +2392,10 @@ static int extract_stmt(__isl_take isl_set *set, void *user)
     assert(isdigit(name[2]));
     id = atoi(isl_set_get_tuple_name(set)+2);
 
+    isl_id* tuple_id = isl_set_get_tuple_id( set );
+    void* user_data = isl_id_get_user( tuple_id );
+
+
     printf("Line %d %s allocating a statement with %d dim-npar at id %d\n",__LINE__,__FILE__,dim-npar,id);
     stmts[id] = pluto_stmt_alloc(dim-npar, NULL, trans);
 
@@ -2399,6 +2403,15 @@ static int extract_stmt(__isl_take isl_set *set, void *user)
     stmt->type = ORIG;
     stmt->id = id;
 
+    // pass the user data to the statement
+    if ( user_data ) {
+      stmt->user = user_data;
+    }else{
+      stmt->user = NULL;
+    }
+
+    // TODO store the old names in the user_data and add them here
+    
     for (i=0; i<stmt->dim; i++) {
         char *iter = malloc(5);
         sprintf(iter, "i%d",  i);

@@ -98,6 +98,9 @@ struct statement{
     /* Statement text */
     char *text;
 
+    /* user data */ 
+    void* user;
+
     /* Does this dimension appear in the statement's original domain? 
      * dummy dimensions added (sinking) will have is_orig_loop as false
      */
