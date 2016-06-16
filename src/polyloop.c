@@ -140,12 +140,12 @@ Ploop **pluto_get_loops_immediately_inner(Ploop *ploop, PlutoProg *prog,
 Ploop **pluto_get_loops_under(Stmt **stmts, int nstmts, int depth,
         const PlutoProg *prog, int *num)
 {
-    printf("Line %d %s %s\n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
+    fprintf(stderr,"Line %d %s %s\n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     int i;
     Ploop **all_loops = NULL;
     bool loop;
 
-    printf("Line %d %s %s depth %d >= hyp %d\n",__LINE__,__FILE__,__PRETTY_FUNCTION__,depth,prog->num_hyperplanes);
+    fprintf(stderr,"Line %d %s %s depth %d >= hyp %d\n",__LINE__,__FILE__,__PRETTY_FUNCTION__,depth,prog->num_hyperplanes);
     if (depth >= prog->num_hyperplanes) {
         *num = 0;
         return NULL;
@@ -255,7 +255,7 @@ Ploop **pluto_get_loops_under(Stmt **stmts, int nstmts, int depth,
 
 Ploop **pluto_get_all_loops(const PlutoProg *prog, int *num)
 {
-    printf("Line %d %s %s\n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
+    fprintf(stderr,"Line %d %s %s\n",__LINE__,__FILE__,__PRETTY_FUNCTION__);
     Ploop **loops;
     loops = pluto_get_loops_under(prog->stmts, prog->nstmts, 0, prog, num);
     return loops;
@@ -304,25 +304,25 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
 {
     int parallel, i;
 
-    printf("%s\n",__PRETTY_FUNCTION__);
+    fprintf(stderr,"%s\n",__PRETTY_FUNCTION__);
     /* All statements under a parallel loop should be of type orig */
     for (i=0; i<loop->nstmts; i++) {
         if (loop->stmts[i]->type != ORIG) break;
     }
     if (i<loop->nstmts) {
-	printf("%s: is not parallel du to no statements\n",__PRETTY_FUNCTION__);
+	fprintf(stderr,"%s: is not parallel du to no statements\n",__PRETTY_FUNCTION__);
         return 0;
     }
 
     // a loop is parallel is either this is true
     if (prog->hProps[loop->depth].dep_prop == PARALLEL) {
-	printf("%s: is parallel due to hProps\n",__PRETTY_FUNCTION__);
+	fprintf(stderr,"%s: is parallel due to hProps\n",__PRETTY_FUNCTION__);
         return 1;
     }
 
     parallel = 1;
 
-    printf("ndeps %d\n",prog->ndeps);
+    fprintf(stderr,"ndeps %d\n",prog->ndeps);
 
     PlutoProg* nc_prog = (PlutoProg*)prog;
     nc_prog->deps_explanation = (char**)malloc(sizeof(char*)*prog->ndeps);
@@ -334,9 +334,9 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
     // or all dependencies that are not rar dependencies
     for (i=0; i<prog->ndeps; i++) {
         Dep *dep = prog->deps[i];
-	printf("dep->src %d dep->dest %d\n",dep->src, dep->dest);
+	fprintf(stderr,"dep->src %d dep->dest %d\n",dep->src, dep->dest);
         if (IS_RAR(dep->type)) {
-	  printf("dep %d is rar dep\n",i);
+	  fprintf(stderr,"dep %d is rar dep\n",i);
 	  continue;
 	}
         assert(dep->satvec != NULL);
@@ -344,10 +344,10 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
         if (pluto_stmt_is_member_of(prog->stmts[dep->src]->id, loop->stmts, loop->nstmts)
                 && pluto_stmt_is_member_of(prog->stmts[dep->dest]->id, loop->stmts, 
                     loop->nstmts)) {
-	    printf("dep %d both are members of this loop\n",i);
+	    fprintf(stderr,"dep %d both are members of this loop\n",i);
 	    // and dont have a satvec that is != 0
             if (dep->satvec[loop->depth]) {
-		printf("dep %d stavec is true for loop->depth %d\n",i, loop->depth);
+		fprintf(stderr,"dep %d stavec is true for loop->depth %d\n",i, loop->depth);
                 parallel = 0;
 		sprintf(nc_prog->deps_explanation[i],"hinders parallelization");
                 break;
@@ -356,9 +356,9 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
 	sprintf(nc_prog->deps_explanation[i],"ok");
     }
     if ( parallel ) {
-      printf("loop IS parallel\n");
+      fprintf(stderr,"loop IS parallel\n");
     }else{
-      printf("loop is NOT parallel \n");
+      fprintf(stderr,"loop is NOT parallel \n");
     }
 
     return parallel;
@@ -513,7 +513,7 @@ Ploop **pluto_get_parallel_loops(const PlutoProg *prog, int *nploops)
 
     pluto_loops_free(loops, num);
 
-    printf("ploops %d\n",ploops);
+    fprintf(stderr,"ploops %d\n",ploops);
     return ploops;
 }
 
@@ -523,7 +523,7 @@ Ploop **pluto_get_dom_parallel_loops(const PlutoProg *prog, int *ndploops)
 {
     Ploop **loops, **dom_loops;
     int i, j, ndomloops, nploops;
-    printf("pluto_get_dom_parallel_loops\n");
+    fprintf(stderr,"pluto_get_dom_parallel_loops\n");
 
     loops = pluto_get_parallel_loops(prog, &nploops);
 
@@ -541,7 +541,7 @@ Ploop **pluto_get_dom_parallel_loops(const PlutoProg *prog, int *ndploops)
     *ndploops = ndomloops;
     pluto_loops_free(loops, nploops);
 
-    printf("dom_loops %d\n",dom_loops);
+    fprintf(stderr,"dom_loops %d\n",dom_loops);
     return dom_loops;
 }
 
@@ -821,7 +821,7 @@ Band **pluto_get_dom_parallel_bands(PlutoProg *prog, int *nbands, int **comm_pla
     }
     *nbands = nb;
 
-    printf("parallel dominating bands:\n");
+    fprintf(stderr,"parallel dominating bands:\n");
     pluto_bands_print(bands, *nbands);
     for (i=0; i<nb; i++) {
         printf("comm placement level(s): %d\n", (*comm_placement_levels)[i]);
@@ -834,6 +834,8 @@ Band **pluto_get_dom_parallel_bands(PlutoProg *prog, int *nbands, int **comm_pla
 /* Set of outermost non-trivial permutable bands (of width >= 2) */
 Band **pluto_get_outermost_permutable_bands(PlutoProg *prog, int *ndbands)
 {
+
+  fprintf(stderr, "%s\n", __PRETTY_FUNCTION__ );
     Ploop **loops;
     int num, i, nbands;
     Band **bands, **dbands;

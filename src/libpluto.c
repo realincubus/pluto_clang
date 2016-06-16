@@ -414,7 +414,15 @@ int pluto_schedule_pluto( PlutoProg* prog, PlutoOptions* options ){
 	fprintf(stdout, "[Pluto] Number of parameters: %d\n", prog->npar);
     }
 
-    retval = pluto_auto_transform(prog);
+    fprintf(stderr, "program before transformation" );
+    pluto_prog_print( stderr,prog );
+
+    if (!options->identity){
+      retval = pluto_auto_transform(prog);
+    }
+
+    fprintf(stderr, "program after transformation" );
+    pluto_prog_print( stderr,prog );
 
 
     if (retval) {
@@ -423,10 +431,10 @@ int pluto_schedule_pluto( PlutoProg* prog, PlutoOptions* options ){
       //isl_space_free(space);
 
       if (!options->silent) {
-	  printf("[libpluto] failure, returning NULL schedules\n");
+	  fprintf(stderr,"[libpluto] failure, returning NULL schedules\n");
       }
 
-      printf("%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      fprintf(stderr,"%s %d %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
       return NULL;
     }
 
@@ -440,13 +448,13 @@ int pluto_schedule_pluto( PlutoProg* prog, PlutoOptions* options ){
     Band **bands, **ibands;
     bands = pluto_get_outermost_permutable_bands(prog, &nbands);
     ibands = pluto_get_innermost_permutable_bands(prog, &n_ibands);
-    printf("Outermost tilable bands: %d bands\n", nbands);
+    fprintf(stderr,"Outermost tilable bands: %d bands\n", nbands);
     pluto_bands_print(bands, nbands);
-    printf("Innermost tilable bands: %d bands\n", n_ibands);
+    fprintf(stderr,"Innermost tilable bands: %d bands\n", n_ibands);
     pluto_bands_print(ibands, n_ibands);
     int nploops;
     Ploop **ploops = pluto_get_dom_parallel_loops(prog, &nploops);
-    printf("number of parallel loops %d\n", nploops);
+    fprintf(stderr,"number of parallel loops %d\n", nploops);
 
     return nploops;
 
