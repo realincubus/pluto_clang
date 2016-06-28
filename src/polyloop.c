@@ -314,7 +314,7 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
         return 0;
     }
 
-    // a loop is parallel is either this is true
+    
     if (prog->hProps[loop->depth].dep_prop == PARALLEL) {
 	fprintf(stderr,"%s: is parallel due to hProps\n",__PRETTY_FUNCTION__);
         return 1;
@@ -339,21 +339,35 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
 	  fprintf(stderr,"dep %d is rar dep\n",i);
 	  continue;
 	}
+	sprintf(nc_prog->deps_explanation[i],"ok");
         assert(dep->satvec != NULL);
 	// are members of the loop 
         if (pluto_stmt_is_member_of(prog->stmts[dep->src]->id, loop->stmts, loop->nstmts)
                 && pluto_stmt_is_member_of(prog->stmts[dep->dest]->id, loop->stmts, 
                     loop->nstmts)) {
 	    fprintf(stderr,"dep %d both are members of this loop\n",i);
-	    // and dont have a satvec that is != 0
+	    // and does not have a satvec that is != 0
             if (dep->satvec[loop->depth]) {
-		fprintf(stderr,"dep %d stavec is true for loop->depth %d\n",i, loop->depth);
-                parallel = 0;
-		sprintf(nc_prog->deps_explanation[i],"hinders parallelization");
-                break;
+		fprintf(stderr,"dep %d stavec is != 0 for loop->depth %d\n",i, loop->depth);
+                parallel *= 0;
+		char* type = "";
+		if ( IS_RAR(dep->type) ) {
+		  type = "RAR";
+		}
+		if ( IS_RAW(dep->type) ) {
+		  type = "RAW";
+		}
+		if ( IS_WAR(dep->type) ) {
+		  type = "WAR";
+		}
+		if ( IS_WAW(dep->type) ) {
+		  type = "WAW";
+		}
+
+		sprintf(nc_prog->deps_explanation[i],"from stmt %d to stmt %d type %s: prevents parallelization", dep->src, dep->dest, type);
+                //break;
             }
         }
-	sprintf(nc_prog->deps_explanation[i],"ok");
     }
     if ( parallel ) {
       fprintf(stderr,"loop IS parallel\n");
