@@ -364,7 +364,7 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
 		  type = "WAW";
 		}
 
-		sprintf(nc_prog->deps_explanation[i],"from stmt %d to stmt %d type %s: prevents parallelization", dep->src, dep->dest, type);
+		sprintf(nc_prog->deps_explanation[i],"from stmt %d to stmt %d type %s: prevents parallelism", dep->src, dep->dest, type);
                 //break;
             }
         }
