@@ -10,8 +10,8 @@ if (PLUTO_INCLUDE_DIR AND PLUTO_LIBRARY)
 	set(PLUTO_FIND_QUIETLY TRUE)
 endif()
 
-find_path(PLUTO_INCLUDE_DIR NAMES pluto/libpluto.h)
-find_library(PLUTO_LIBRARY NAMES lib/pluto)
+find_path(PLUTO_INCLUDE_DIR NAMES include/pluto/libpluto.h)
+find_library(PLUTO_LIBRARY NAMES lib/libpluto.so)
 find_program(POLYCC_BIN NAMES bin/polycc)
 find_program(CLAN_BIN NAMES bin/clan)
 
