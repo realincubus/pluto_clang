@@ -11,7 +11,7 @@ if (PLUTO_INCLUDE_DIR AND PLUTO_LIBRARY)
 endif()
 
 find_path(PLUTO_INCLUDE_DIR NAMES pluto/libpluto.h)
-find_library(PLUTO_LIBRARY NAMES pluto)
+find_library(PLUTO_LIBRARY NAMES lib/pluto)
 find_program(POLYCC_BIN NAMES bin/polycc)
 find_program(CLAN_BIN NAMES bin/clan)
 
