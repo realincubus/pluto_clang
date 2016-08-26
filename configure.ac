@@ -121,6 +121,7 @@ echo "Configuring PipLib"
 echo "=========================="
 configureopts="--with-gmp \
 --with-gmp-prefix=$GMP_PREFIX \
+--with-pic \
 --prefix=$prefix"
 (cd piplib/
  $RM config.cache;
@@ -135,6 +136,7 @@ echo "Configuring Openscop"
 echo "=========================="
 configureopts="--with-gmp=system \
 --with-gmp-prefix=$GMP_PREFIX \
+--with-pic \
 --prefix=$prefix"
 (cd openscop/
  ./configure ${configureopts} ${archopts}
@@ -148,6 +150,7 @@ echo "Configuring Clan"
 echo "=========================="
 configureopts="--prefix=$prefix \
 --with-osl=build \
+--with-pic \
 --with-osl-builddir=$SOURCE_DIR/openscop"
 (cd clan/
  ./configure ${configureopts} ${archopts}
@@ -166,6 +169,7 @@ echo "Configuring Candl"
 echo "=========================="
 configureopts="--enable-llint-version \
 --prefix=$prefix \
+--with-pic \
 --with-piplib=build \
 --with-piplib-builddir=$SOURCE_DIR/piplib \
 --with-osl=build \
@@ -181,6 +185,7 @@ echo "======================"
 echo "Configuring polylib"
 echo "======================"
 configureopts="--enable-longlongint-lib \
+--with-pic \
 --prefix=$prefix"
 (cd polylib/
  ./configure ${configureopts}
@@ -215,6 +220,7 @@ echo "======================"
 configureopts="--with-gmp=system \
 --with-gmp-prefix=$GMP_PREFIX \
 --with-gmp-exec-prefix=$GMP_PREFIX \
+--with-pic \
 --prefix=$prefix"
 (cd isl/
  ./configure ${configureopts} ${archopts}
@@ -234,6 +240,7 @@ configureopts="--with-isl=build \
 --with-gmp-prefix=$GMP_PREFIX \
 --with-osl=build \
 --with-osl-builddir=$SOURCE_DIR/openscop \
+--with-pic \
 --prefix=$prefix"
 else
 configureopts="--with-isl=system \
@@ -242,6 +249,7 @@ configureopts="--with-isl=system \
 --with-gmp-prefix=$GMP_PREFIX \
 --with-osl=build \
 --with-osl-builddir=$SOURCE_DIR/openscop \
+--with-pic \
 --prefix=$prefix"
 fi
 (cd cloog-isl/
@@ -254,6 +262,7 @@ echo "=========================="
 echo "Configuring pluto_codegen_cxx"
 echo "=========================="
 configureopts="\
+--with-pic \
 --prefix=$prefix"
 (cd pluto_codegen_cxx/
  ./configure ${configureopts} ${archopts}
