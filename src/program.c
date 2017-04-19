@@ -2614,7 +2614,7 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
   fprintf(stderr,"write\n");
   isl_union_map_dump( write );
 
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   PlutoProg* prog =  pluto_prog_alloc() ;
 
   // add context constraints
@@ -2629,35 +2629,35 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
   prog->nvar = -1;
   prog->nstmts = isl_union_set_n_set(domains);
 
-  printf("Line %d %s nstmts %d \n",__LINE__,__FILE__,prog->nstmts);
+  fprintf(stderr,"Line %d %s nstmts %d \n",__LINE__,__FILE__,prog->nstmts);
 
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   if (prog->nstmts >= 1) {
-      printf("allocating %d statement pointers\n",prog->nstmts);
+      fprintf(stderr,"allocating %d statement pointers\n",prog->nstmts);
       prog->stmts = (Stmt **)malloc(prog->nstmts * sizeof(Stmt *));
-      printf("prog->stmts %d\n",prog->stmts);
+      fprintf(stderr,"prog->stmts %d\n",prog->stmts);
   }else{
       prog->stmts = NULL;
   }
 
-  printf("Line %d %s zero the statement pointers\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s zero the statement pointers\n",__LINE__,__FILE__);
   for (int i=0; i<prog->nstmts; i++) {
       prog->stmts[i] = NULL;
   }
 
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   extract_stmts(domains, prog->stmts);
    
 
-  printf("Line %d %s nstmt %d\n",__LINE__,__FILE__,prog->nstmts);
+  fprintf(stderr,"Line %d %s nstmt %d\n",__LINE__,__FILE__,prog->nstmts);
   for (int i=0; i<prog->nstmts; i++) {
-      printf("prog->stmts[i] %d\n", prog->stmts[i]);
-      printf("prog->nvar %d dim %d\n", prog->nvar, prog->stmts[i]->dim);
+      fprintf(stderr,"prog->stmts[i] %d\n", prog->stmts[i]);
+      fprintf(stderr,"prog->nvar %d dim %d\n", prog->nvar, prog->stmts[i]->dim);
       prog->nvar = PLMAX(prog->nvar, prog->stmts[i]->dim);
-      printf("prog->nvar %d\n", prog->nvar);
+      fprintf(stderr,"prog->nvar %d\n", prog->nvar);
   }
 
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   if (prog->nstmts >= 1) {
     Stmt *stmt = prog->stmts[0];
     prog->npar = stmt->domain->ncols - stmt->dim - 1;
@@ -2678,11 +2678,22 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
     const char* name = isl_set_get_dim_name( context, isl_dim_param, 0 );
 
     int n_parameters = isl_set_n_param( context ); 
-    fprintf(stderr,"context has %d parameters\n", n_parameters);
-    for (int i = 0; i < n_parameters; ++i){
+    prog->npar = n_parameters;
+
+    if ( prog->params ) {
+      free( prog->params );
+    }
+    prog->params = (char**) malloc(sizeof(char*) * prog->npar );
+
+    fprintf(stderr,"context has %d parameters\n", prog->npar);
+    for (int i = 0; i < prog->npar; ++i){
       const char* name = isl_set_get_dim_name( context, isl_dim_param, i );
+      if ( name == NULL ) {
+	fprintf(stderr, "could not get the name of this set\n");
+      }
       fprintf( stderr, "tuple name %d is %s\n", i, name);
       prog->params[i] = strdup(name);
+      fprintf( stderr, "could not set the param\n");
     }
     fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   }else{
@@ -2732,20 +2743,20 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
   isl_union_map_foreach_map(dep_war, &isl_map_count, &prog->ndeps);
   isl_union_map_foreach_map(dep_waw, &isl_map_count, &prog->ndeps);
   isl_union_map_foreach_map(dep_rar, &isl_map_count, &prog->ndeps);
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
 
   prog->deps = (Dep **)malloc(prog->ndeps * sizeof(Dep *));
   for (int i=0; i<prog->ndeps; i++) {
       prog->deps[i] = pluto_dep_alloc();
   }
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   prog->ndeps = 0;
   prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_raw, OSL_DEPENDENCE_RAW);
   prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_war, OSL_DEPENDENCE_WAR);
   prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_waw, OSL_DEPENDENCE_WAW);
   prog->ndeps += extract_deps(prog->deps, prog->ndeps, prog->stmts, dep_rar, OSL_DEPENDENCE_RAR);
 
-  printf("Line %d %s\n",__LINE__,__FILE__);
+  fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
 
   if (options->lastwriter) {
       if (options->isldepcoalesce) {
