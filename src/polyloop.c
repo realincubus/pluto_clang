@@ -352,16 +352,16 @@ int pluto_loop_is_parallel(const PlutoProg *prog, Ploop *loop)
                 parallel *= 0;
 		char* type = "";
 		if ( IS_RAR(dep->type) ) {
-		  type = "RAR";
+		  type = "read after read";
 		}
 		if ( IS_RAW(dep->type) ) {
-		  type = "RAW";
+		  type = "read after write";
 		}
 		if ( IS_WAR(dep->type) ) {
-		  type = "WAR";
+		  type = "write after read";
 		}
 		if ( IS_WAW(dep->type) ) {
-		  type = "WAW";
+		  type = "write after write";
 		}
 
 		sprintf(nc_prog->deps_explanation[i],"from stmt %d to stmt %d type %s: prevents parallelism", dep->src, dep->dest, type);

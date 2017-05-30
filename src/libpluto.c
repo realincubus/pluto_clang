@@ -438,7 +438,9 @@ int pluto_schedule_pluto( PlutoProg* prog, PlutoOptions* options ){
       return NULL;
     }
 
-    pluto_detect_transformation_properties(prog);
+    if ( pluto_detect_transformation_properties(prog) != 0 ) {
+      return 0; 
+    }
 
     if (!options->silent) {
         pluto_transformations_pretty_print(prog);

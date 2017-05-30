@@ -2617,6 +2617,8 @@ PlutoProg* pluto_compute_deps( isl_union_map* schedule,
   fprintf(stderr,"Line %d %s\n",__LINE__,__FILE__);
   PlutoProg* prog =  pluto_prog_alloc() ;
 
+  prog->deps_explanation = NULL;
+
   // add context constraints
   if ( context ){
     prog->context = isl_set_to_pluto_constraints( context );

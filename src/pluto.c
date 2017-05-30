@@ -1078,7 +1078,7 @@ void pluto_detect_hyperplane_types(PlutoProg *prog)
 
 /* Detect tilable bands; calculate dependence components (in transformed 
  * space); calls simple dep satisfaction checks */
-void pluto_detect_transformation_properties(PlutoProg *prog)
+int pluto_detect_transformation_properties(PlutoProg *prog)
 {
     int level, i, j;
     Stmt **stmts = prog->stmts;
@@ -1160,7 +1160,8 @@ void pluto_detect_transformation_properties(PlutoProg *prog)
                     pluto_print_hyperplane_properties(prog);
                     pluto_compute_dep_directions(prog);
                     pluto_print_dep_directions(prog);
-                    assert(0);
+                    //assert(0);
+                    return -1;
                 }
 
                 band++;
@@ -1201,7 +1202,7 @@ void pluto_detect_transformation_properties(PlutoProg *prog)
     }
 
     pluto_detect_hyperplane_types_stmtwise(prog);
-
+    return 0;
 }
 
 
